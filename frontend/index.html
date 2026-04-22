@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tajwid Learning - Belajar Tajwid dengan Sertifikat Blockchain</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="islamic-pattern"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="cyber-grid"></div>
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-neon-green/30">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-quran text-2xl text-neon-gold"></i>
+                    <span class="cyber-header text-lg">TAJWID LEARNING</span>
+                </div>
+                <div id="authButtons" class="flex gap-3">
+                    <a href="login.html" class="btn-cyber px-4 py-2 text-sm">Login</a>
+                    <a href="register.html" class="btn-cyber-purple px-4 py-2 text-sm">Daftar</a>
+                </div>
+                <div id="userMenu" style="display: none;">
+                    <a href="user.html" class="btn-cyber px-4 py-2 text-sm">Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative z-10 min-h-screen flex items-center">
+        <div class="container mx-auto px-4 text-center">
+            <div class="mb-8">
+                <i class="fas fa-quran text-6xl text-neon-gold"></i>
+            </div>
+            <div class="arabic-text text-3xl mb-4">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+            <h1 class="text-5xl md:text-7xl font-bold mb-4">
+                <span class="cyber-header">BELAJAR TAJWID</span><br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500">
+                    Sertifikat Blockchain
+                </span>
+            </h1>
+            <p class="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
+                Platform pembelajaran tajwid interaktif dengan sertifikat digital berbasis blockchain. 
+                Belajar, uji kemampuan, dan dapatkan sertifikat yang tidak bisa dipalsukan.
+            </p>
+            <div class="flex gap-4 justify-center">
+                <a href="register.html" class="btn-cyber px-8 py-4 text-lg">Mulai Belajar</a>
+                <a href="#fitur" class="btn-cyber-purple px-8 py-4 text-lg">Pelajari Lebih</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="fitur" class="relative z-10 py-20 bg-black/50">
+        <div class="container mx-auto px-4">
+            <h2 class="cyber-header text-3xl text-center mb-12">Fitur Unggulan</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="cyber-card p-6 text-center">
+                    <i class="fas fa-book-open text-4xl text-neon-green mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">Materi Interaktif</h3>
+                    <p class="text-gray-400">Materi lengkap dengan video, audio, dan visualisasi hukum tajwid</p>
+                </div>
+                <div class="cyber-card p-6 text-center">
+                    <i class="fas fa-pencil-alt text-4xl text-neon-blue mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">Ujian Per Bab</h3>
+                    <p class="text-gray-400">Evaluasi pemahaman dengan ujian setiap bab</p>
+                </div>
+                <div class="cyber-card p-6 text-center">
+                    <i class="fas fa-certificate text-4xl text-neon-gold mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">Sertifikat Blockchain</h3>
+                    <p class="text-gray-400">Sertifikat terverifikasi di blockchain, tidak bisa dipalsukan</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="relative z-10 py-16">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                <div class="cyber-card p-6">
+                    <div class="stat-number text-3xl font-bold text-neon-green" data-target="5000">0</div>
+                    <p class="text-gray-400 mt-2">Siswa Terdaftar</p>
+                </div>
+                <div class="cyber-card p-6">
+                    <div class="stat-number text-3xl font-bold text-neon-blue" data-target="50">0</div>
+                    <p class="text-gray-400 mt-2">Materi Pembelajaran</p>
+                </div>
+                <div class="cyber-card p-6">
+                    <div class="stat-number text-3xl font-bold text-neon-gold" data-target="1000">0</div>
+                    <p class="text-gray-400 mt-2">Sertifikat Diterbitkan</p>
+                </div>
+                <div class="cyber-card p-6">
+                    <div class="stat-number text-3xl font-bold text-neon-purple" data-target="100">0</div>
+                    <p class="text-gray-400 mt-2">Kepuasan Siswa</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

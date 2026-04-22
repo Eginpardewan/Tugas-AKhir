@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tajwid Learning | Sertifikat Blockchain</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=JetBrains+Mono&family=Amiri:wght@400;700&display=swap"
+        rel="stylesheet" />
+
+    <style>
+        :root {
+            --neon-green: #00ff88;
+            --neon-blue: #00f2ff;
+            --neon-purple: #bc13fe;
+            --neon-gold: #ffd700;
+            --dark-bg: #0a0a0a;
+            --islamic-green: #2E7D32;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Islamic Pattern Background */
+        .islamic-pattern {
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L35 15 L30 25 L25 15 Z' fill='rgba(46,125,50,0.05)'/%3E%3Cpath d='M30 35 L35 45 L30 55 L25 45 Z' fill='rgba(46,125,50,0.05)'/%3E%3C/svg%3E");
+            background-size: 60px 60px;
+            z-index: 0;
+        }
+
+        /* Animated Gradient Orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.3;
+            z-index: 0;
+            animation: float-orb 12s ease-in-out infinite alternate;
+        }
+
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--islamic-green);
+            top: -200px;
+            left: -200px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 600px;
+            height: 600px;
+            background: var(--neon-blue);
+            bottom: -300px;
+            right: -200px;
+            animation-delay: 4s;
+        }
+
+        .orb-3 {
+            width: 400px;
+            height: 400px;
+            background: var(--neon-purple);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: 8s;
+        }
+
+        @keyframes float-orb {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                transform: translate(50px, 50px) scale(1.2);
+            }
+        }
+
+        /* Cyber Header Style */
+        .cyber-header {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 8px;
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+
+        /* Button Cyber Style */
+        .btn-cyber {
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+            border: 2px solid var(--neon-green);
+            color: var(--neon-green);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s;
+        }
+
+        .btn-cyber::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: var(--neon-green);
+            transition: width 0.6s, height 0.6s;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+        }
+
+        .btn-cyber:hover::before {
+            width: 400%;
+            height: 400%;
+        }
+
+        .btn-cyber:hover {
+            color: #000;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 40px var(--neon-green);
+            transform: scale(1.05);
+        }
+
+        /* Arabic Text Style */
+        .arabic-text {
+            font-family: 'Amiri', serif;
+            font-size: 2rem;
+            color: var(--neon-gold);
+        }
+
+        /* Modal Style */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+            border: 2px solid var(--neon-green);
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 0 60px rgba(0, 255, 136, 0.3);
+        }
+
+        .cyber-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 10px;
+            padding: 12px;
+            color: var(--neon-green);
+            font-family: 'JetBrains Mono', monospace;
+            transition: 0.3s;
+        }
+
+        .cyber-input:focus {
+            border-color: var(--neon-green);
+            outline: none;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .status-pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 5px var(--neon-green);
+            }
+            50% {
+                box-shadow: 0 0 20px var(--neon-green);
+            }
+        }
+
+        /* Loading Animation */
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s steps(4) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        /* Arabic Calligraphy Decoration */
+        .bismillah {
+            font-family: 'Amiri', serif;
+            font-size: 2.5rem;
+            color: var(--neon-gold);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="islamic-pattern"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- Main Content -->
+    <section class="relative z-10 min-h-screen flex flex-col items-center justify-center text-center px-6">
+        
+        <!-- Logo / Icon -->
+        <div class="mb-8">
+            <i class="fas fa-quran text-7xl" style="color: var(--neon-gold); filter: drop-shadow(0 0 20px var(--neon-gold));"></i>
+        </div>
+
+        <!-- Bismillah -->
+        <div class="bismillah mb-4">
+            بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+        </div>
+
+        <!-- Title -->
+        <h1 class="text-5xl md:text-7xl font-bold mb-4">
+            <span class="cyber-header" style="color: var(--neon-green);">TAJWID</span>
+            <br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-cyan-400 to-purple-500"
+                style="background-size: 200% 200%; animation: gradient-rotate 3s ease infinite;">
+                LEARNING
+            </span>
+        </h1>
+
+        <p class="font-mono text-sm tracking-[0.3em] uppercase opacity-70 mb-4">
+            Sertifikat Berbasis Blockchain
+        </p>
+
+        <p class="text-sm max-w-md mx-auto opacity-60 mb-12">
+            Platform pembelajaran tajwid dengan sertifikat digital terverifikasi blockchain.
+            Belajar, uji kemampuan, dan dapatkan sertifikat yang tidak bisa dipalsukan.
+        </p>
+
+        <!-- Status Indicator -->
+        <div class="flex items-center justify-center space-x-3 mb-12">
+            <span class="inline-block w-3 h-3 rounded-full status-pulse" style="background: var(--neon-green);"></span>
+            <p class="font-mono text-xs tracking-[0.2em] uppercase" style="color: var(--neon-green);">
+                <i class="fas fa-link mr-2"></i>
+                Sepolia Testnet Active
+            </p>
+            <span class="inline-block w-3 h-3 rounded-full status-pulse" style="background: var(--neon-green);"></span>
+        </div>
+
+        <!-- Connect Button -->
+        <button id="connectWalletBtn" class="btn-cyber px-12 py-5 rounded-md text-sm font-bold">
+            <span class="relative z-10 flex items-center gap-3">
+                <i class="fas fa-plug"></i>
+                <span class="loading-dots">CONNECT WALLET</span>
+            </span>
+        </button>
+
+        <div id="walletAddress" class="mt-6 px-6 py-3 rounded-md text-xs font-mono tracking-wider"
+            style="background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); display: none;">
+        </div>
+
+        <!-- Register Link -->
+        <div class="mt-8 text-xs opacity-50">
+            Belum punya akun? <a href="register.html" class="text-green-400 hover:underline">Daftar disini</a>
+            | Sudah punya akun? <a href="login.html" class="text-green-400 hover:underline">Login</a>
+        </div>
+    </section>
+
+    <!-- Modal Pilih Role -->
+    <div class="modal" id="roleModal">
+        <div class="modal-box text-center">
+            <i class="fas fa-user-circle text-5xl mb-4" style="color: var(--neon-green);"></i>
+            <h3 class="cyber-header text-xl mb-4">PILIH PERAN</h3>
+            <p class="text-sm opacity-70 mb-6">
+                Wallet Anda telah terhubung. Pilih peran Anda untuk melanjutkan.
+            </p>
+            <div class="space-y-3">
+                <button id="roleUserBtn" class="w-full btn-cyber py-3 text-sm">
+                    <i class="fas fa-user mr-2"></i> SISWA / USER
+                </button>
+                <button id="roleAdminBtn" class="w-full btn-cyber py-3 text-sm" style="border-color: var(--neon-purple); color: var(--neon-purple);">
+                    <i class="fas fa-shield-alt mr-2"></i> ADMIN
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
+
+        // Contract Address (akan diupdate setelah deploy)
+        const SERTIFIKAT_ADDRESS = "0x..."; // Ganti dengan address dari deploy
+        const MATERI_ADDRESS = "0x..."; // Ganti dengan address dari deploy
+
+        const SERTIFIKAT_ABI = [
+            "function cekKelayakanSertifikat(address _user) external view returns (bool, uint256, bool)",
+            "function dapatkanSertifikatSaya(address _user) external view returns (tuple(uint256 id, address pemilik, string namaUser, uint256 nilai, uint256 tanggalTerbit, string ipfsHash, bool isValid)[] memory)"
+        ];
+
+        let provider, signer, contractSertifikat, currentAccount;
+
+        const connectBtn = document.getElementById("connectWalletBtn");
+        const walletDisplay = document.getElementById("walletAddress");
+        const roleModal = document.getElementById("roleModal");
+
+        connectBtn.onclick = async () => {
+            if (!window.ethereum) {
+                alert("MetaMask tidak terdeteksi! Silakan install MetaMask.");
+                return;
+            }
+
+            try {
+                const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+                if (!accounts || accounts.length === 0) {
+                    alert("Wallet belum terhubung");
+                    return;
+                }
+
+                currentAccount = accounts[0];
+                walletDisplay.textContent = `${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`;
+                walletDisplay.style.display = "block";
+                connectBtn.disabled = true;
+                connectBtn.innerText = "✓ WALLET CONNECTED";
+
+                // Inisialisasi contract
+                provider = new ethers.BrowserProvider(window.ethereum);
+                signer = await provider.getSigner();
+                contractSertifikat = new ethers.Contract(SERTIFIKAT_ADDRESS, SERTIFIKAT_ABI, signer);
+
+                // Cek network
+                const network = await provider.getNetwork();
+                if (network.chainId !== 11155111n) {
+                    alert("⚠️ Harap pindah ke Sepolia Testnet di MetaMask!");
+                    return;
+                }
+
+                // Simpan wallet ke localStorage
+                localStorage.setItem("walletAddress", currentAccount);
+
+                // Tampilkan modal pilih role
+                roleModal.style.display = "flex";
+
+            } catch (err) {
+                console.error(err);
+                alert("❌ Gagal terhubung ke MetaMask");
+            }
+        };
+
+        // Pilih Role User
+        document.getElementById("roleUserBtn").onclick = () => {
+            localStorage.setItem("userRole", "user");
+            localStorage.setItem("isLoggedIn", "true");
+            window.location.href = "user.html";
+        };
+
+        // Pilih Role Admin
+        document.getElementById("roleAdminBtn").onclick = () => {
+            localStorage.setItem("userRole", "admin");
+            localStorage.setItem("isLoggedIn", "true");
+            window.location.href = "admin.html";
+        };
+
+        // Auto-check jika sudah connect sebelumnya
+        window.addEventListener("load", async () => {
+            const savedWallet = localStorage.getItem("walletAddress");
+            if (savedWallet && window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: "eth_accounts" });
+                    if (accounts.length > 0 && accounts[0].toLowerCase() === savedWallet.toLowerCase()) {
+                        currentAccount = accounts[0];
+                        walletDisplay.textContent = `${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`;
+                        walletDisplay.style.display = "block";
+                        connectBtn.disabled = true;
+                        connectBtn.innerText = "✓ WALLET CONNECTED";
+                        roleModal.style.display = "flex";
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

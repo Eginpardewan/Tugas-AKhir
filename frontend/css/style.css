@@ -1,0 +1,417 @@
+:root {
+    --neon-green: #00ff88;
+    --neon-blue: #00f2ff;
+    --neon-purple: #bc13fe;
+    --neon-pink: #ff2a6d;
+    --neon-gold: #ffd700;
+    --dark-bg: #0a0a0a;
+    --darker-bg: #05070a;
+    --islamic-green: #2E7D32;
+    --islamic-gold: #C5A059;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, var(--dark-bg) 0%, #0f0f1a 100%);
+    color: #e2e8f0;
+    min-height: 100vh;
+}
+
+/* Islamic Pattern Background - TETAP (statis, tidak bergerak) */
+.islamic-pattern {
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L35 15 L30 25 L25 15 Z' fill='rgba(46,125,50,0.03)'/%3E%3Cpath d='M30 35 L35 45 L30 55 L25 45 Z' fill='rgba(46,125,50,0.03)'/%3E%3C/svg%3E");
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Orbs - HILANGKAN ANIMASI, jadi statis */
+.orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.15;
+    z-index: 0;
+}
+
+.orb-1 {
+    width: 500px;
+    height: 500px;
+    background: var(--islamic-green);
+    top: -200px;
+    left: -200px;
+}
+
+.orb-2 {
+    width: 600px;
+    height: 600px;
+    background: var(--neon-blue);
+    bottom: -300px;
+    right: -200px;
+}
+
+.orb-3 {
+    width: 400px;
+    height: 400px;
+    background: var(--neon-purple);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Cyber Grid - HILANGKAN ANIMASI, jadi statis */
+.cyber-grid {
+    position: fixed;
+    inset: 0;
+    background-image: 
+        linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Scanline Effect - HAPUS TOTAL (ini penyebab utama sakit mata) */
+/* body::before dihapus */
+
+/* Typography - TANPA text-shadow berlebihan */
+.cyber-header {
+    font-family: 'Orbitron', monospace;
+    letter-spacing: 3px;
+}
+
+.arabic-text {
+    font-family: 'Amiri', 'Traditional Arabic', serif;
+    font-size: 2rem;
+    color: var(--islamic-gold);
+}
+
+/* Buttons - TANPA efek hover yang berlebihan */
+.btn-cyber {
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+    border: 1.5px solid var(--neon-green);
+    color: var(--neon-green);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'Orbitron', monospace;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    padding: 12px 24px;
+    border-radius: 8px;
+}
+
+.btn-cyber:hover {
+    background: rgba(0, 255, 136, 0.15);
+    color: var(--neon-green);
+}
+
+.btn-cyber:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-cyber-purple {
+    border-color: var(--neon-purple);
+    color: var(--neon-purple);
+}
+
+.btn-cyber-purple:hover {
+    background: rgba(188, 19, 254, 0.15);
+}
+
+/* Cards - TANPA efek hover transform */
+.cyber-card {
+    background: linear-gradient(135deg, rgba(13, 17, 23, 0.95), rgba(20, 25, 35, 0.9));
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.cyber-card:hover {
+    border-color: rgba(0, 255, 136, 0.4);
+}
+
+/* Inputs */
+.cyber-input {
+    background: rgba(0, 0, 0, 0.7);
+    border: 1.5px solid rgba(0, 255, 136, 0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--neon-green);
+    font-family: 'JetBrains Mono', monospace;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.cyber-input:focus {
+    border-color: var(--neon-green);
+    outline: none;
+    background: rgba(0, 0, 0, 0.85);
+}
+
+.cyber-input::placeholder {
+    color: rgba(0, 255, 136, 0.3);
+}
+
+/* Select */
+.cyber-select {
+    background: rgba(0, 0, 0, 0.7);
+    border: 1.5px solid rgba(0, 255, 136, 0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--neon-green);
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+}
+
+.cyber-select:focus {
+    border-color: var(--neon-green);
+    outline: none;
+}
+
+/* Modal */
+.cyber-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.cyber-modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+    border: 1.5px solid var(--neon-green);
+    border-radius: 16px;
+    padding: 28px;
+    width: 90%;
+    max-width: 550px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Progress Bar */
+.progress-bar {
+    background: linear-gradient(90deg, var(--islamic-green), var(--neon-green));
+    height: 8px;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+/* Certificate Card - TANPA efek hover scale */
+.certificate-card {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.08), rgba(0, 242, 255, 0.03));
+    border: 1px solid var(--neon-gold);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.certificate-card:hover {
+    border-color: rgba(255, 215, 0, 0.6);
+}
+
+/* Materi Card */
+.materi-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.materi-card:hover {
+    border-color: var(--neon-green);
+}
+
+/* Soal Card */
+.soal-card {
+    background: rgba(0, 0, 0, 0.5);
+    border-left: 3px solid var(--neon-green);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Radio Group */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.radio-option:hover {
+    background: rgba(0, 255, 136, 0.08);
+}
+
+.radio-option input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--neon-green);
+}
+
+/* Toast Notification - TANPA animasi slide-in */
+.cyber-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, var(--islamic-green), var(--neon-green));
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    z-index: 1100;
+}
+
+/* Loading Spinner - TETAP (ini perlu untuk loading indicator) */
+.loading-spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(0, 255, 136, 0.3);
+    border-top-color: var(--neon-green);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Table Styles */
+.cyber-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.cyber-table th,
+.cyber-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 255, 136, 0.15);
+}
+
+.cyber-table th {
+    color: var(--neon-green);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+.cyber-table tr:hover {
+    background: rgba(0, 255, 136, 0.04);
+}
+
+/* Badge */
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: rgba(0, 255, 136, 0.15);
+    color: var(--neon-green);
+    border: 1px solid var(--neon-green);
+}
+
+.badge-warning {
+    background: rgba(255, 215, 0, 0.15);
+    color: var(--neon-gold);
+    border: 1px solid var(--neon-gold);
+}
+
+.badge-danger {
+    background: rgba(255, 42, 109, 0.15);
+    color: var(--neon-pink);
+    border: 1px solid var(--neon-pink);
+}
+
+/* Tabs */
+.tab-btn {
+    background: transparent;
+    border: none;
+    padding: 12px 24px;
+    color: #94a3b8;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-btn.active {
+    color: var(--neon-green);
+    border-bottom-color: var(--neon-green);
+}
+
+.tab-btn:hover:not(.active) {
+    color: #cbd5e1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .cyber-header {
+        font-size: 1.3rem;
+        letter-spacing: 2px;
+    }
+    
+    .arabic-text {
+        font-size: 1.2rem;
+    }
+    
+    .modal-content {
+        padding: 20px;
+        margin: 20px;
+    }
+    
+    .tab-btn {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
+
+/* Scrollbar - TETAP keren */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--darker-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--neon-green);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--islamic-green);
+}

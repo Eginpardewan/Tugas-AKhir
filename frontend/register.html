@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Tajwid Learning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-dark-bg min-h-screen flex items-center justify-center">
+    <div class="cyber-card p-8 w-full max-w-md mx-4">
+        <div class="text-center mb-6">
+            <i class="fas fa-quran text-4xl text-neon-gold mb-3"></i>
+            <h2 class="cyber-header text-2xl">DAFTAR AKUN</h2>
+            <p class="text-gray-400 text-sm mt-2">Daftar sebagai Siswa</p>
+        </div>
+        
+        <form id="registerForm">
+            <div class="mb-4">
+                <label class="block text-sm mb-2">Username</label>
+                <input type="text" id="username" class="cyber-input w-full" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm mb-2">Email</label>
+                <input type="email" id="email" class="cyber-input w-full" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm mb-2">Password</label>
+                <input type="password" id="password" class="cyber-input w-full" required>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm mb-2">Konfirmasi Password</label>
+                <input type="password" id="confirmPassword" class="cyber-input w-full" required>
+            </div>
+            <button type="submit" class="btn-cyber w-full py-3">DAFTAR</button>
+        </form>
+        
+        <div id="message" class="mt-4 text-center text-sm"></div>
+        
+        <p class="text-center text-sm text-gray-400 mt-4">
+            Sudah punya akun? <a href="login.html" class="text-neon-green hover:underline">Login disini</a>
+        </p>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            const messageDiv = document.getElementById('message');
+            
+            if (password !== confirm) {
+                messageDiv.innerHTML = '<div class="text-red-400">Password tidak cocok!</div>';
+                return;
+            }
+            
+            const data = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                password: password
+            };
+            
+            try {
+                messageDiv.innerHTML = '<div class="text-yellow-400">Memproses...</div>';
+                
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    messageDiv.innerHTML = '<div class="text-green-400">Registrasi berhasil! Silakan login.</div>';
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    messageDiv.innerHTML = `<div class="text-red-400">${result.message}</div>`;
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<div class="text-red-400">Gagal terhubung ke server</div>';
+            }
+        });
+    </script>
+</body>
+</html>

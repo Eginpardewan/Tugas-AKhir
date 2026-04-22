@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard User - Tajwid Learning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #e2e8f0; overflow-x: hidden; }
+        
+        /* Navbar */
+        .navbar {
+            background: #0f0f1a;
+            border-bottom: 1px solid #2E7D32;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 12px 20px;
+        }
+        
+        /* Sidebar - Desktop */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            width: 260px;
+            height: calc(100vh - 60px);
+            background: #111827;
+            border-right: 1px solid #2E7D32;
+            overflow-y: auto;
+            z-index: 90;
+            transition: transform 0.3s ease;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 80px 20px 20px;
+            min-height: 100vh;
+        }
+        
+        /* Mobile Menu Button */
+        .menu-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        /* Card Styles */
+        .card {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #2E7D32;
+        }
+        
+        .materi-item {
+            background: #0f0f1a;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #2E7D32;
+        }
+        .materi-item:hover { background: #1a1a2e; transform: translateX(5px); }
+        
+        .btn-primary { background: #2E7D32; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; }
+        .btn-primary:hover { background: #1B5E20; }
+        .btn-outline { background: transparent; border: 1px solid #2E7D32; color: #2E7D32; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-success { background: rgba(46, 125, 50, 0.2); color: #4caf50; border: 1px solid #4caf50; }
+        .badge-warning { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid #ffc107; }
+        .badge-info { background: rgba(33, 150, 243, 0.2); color: #2196f3; border: 1px solid #2196f3; }
+        
+        .progress-bar { background: #2E7D32; height: 8px; border-radius: 10px; transition: width 0.3s; }
+        .progress-container { background: #333; border-radius: 10px; overflow: hidden; }
+        
+        /* Sidebar Items */
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-item:hover { background: rgba(46, 125, 50, 0.2); }
+        .sidebar-item.active { background: rgba(46, 125, 50, 0.3); border-left-color: #2E7D32; color: #4caf50; }
+        .sidebar-category { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; padding: 16px 20px 8px; font-weight: 600; }
+        
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        
+        .loading { display: inline-block; width: 30px; height: 30px; border: 3px solid #2E7D32; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        video { max-width: 100%; border-radius: 8px; }
+        audio { width: 100%; }
+        img { max-width: 100%; border-radius: 8px; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1a1a2e; }
+        ::-webkit-scrollbar-thumb { background: #2E7D32; border-radius: 4px; }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 70px 15px 20px;
+            }
+            .menu-btn {
+                display: block;
+            }
+            .overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 85;
+                display: none;
+            }
+            .overlay.active {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <button class="menu-btn" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <i class="fas fa-quran text-2xl text-green-600"></i>
+            <span class="text-xl font-bold">Tajwid Learning</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span id="userName" class="text-sm text-gray-300"></span>
+            <button id="logoutBtn" class="text-red-400 hover:text-red-300">
+                <i class="fas fa-sign-out-alt"></i> <span class="hidden sm:inline">Logout</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- Overlay untuk mobile -->
+<div id="overlay" class="overlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<div id="sidebar" class="sidebar">
+    <div class="sidebar-category">MENU UTAMA</div>
+    <div class="sidebar-item active" data-page="dashboard">
+        <i class="fas fa-chart-line w-5"></i>
+        <span>Dashboard</span>
+    </div>
+    <div class="sidebar-item" data-page="belajar">
+        <i class="fas fa-book w-5"></i>
+        <span>Belajar</span>
+    </div>
+    <div class="sidebar-item" data-page="ujian">
+        <i class="fas fa-pencil-alt w-5"></i>
+        <span>Ujian Per Bab</span>
+    </div>
+    <div class="sidebar-item" data-page="sertifikat">
+        <i class="fas fa-certificate w-5"></i>
+        <span>Ujian Sertifikat</span>
+    </div>
+    <div class="sidebar-item" data-page="riwayat">
+        <i class="fas fa-medal w-5"></i>
+        <span>Sertifikat Saya</span>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Dashboard Page -->
+    <div id="page-dashboard" class="page-content">
+        <div class="card">
+            <h2 class="text-xl md:text-2xl font-bold mb-4">📊 Dashboard</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-black/30 rounded-lg p-4 text-center">
+                    <i class="fas fa-book text-2xl md:text-3xl text-green-500 mb-2"></i>
+                    <p class="text-xl md:text-2xl font-bold" id="totalMateri">0</p>
+                    <p class="text-xs text-gray-400">Total Materi</p>
+                </div>
+                <div class="bg-black/30 rounded-lg p-4 text-center">
+                    <i class="fas fa-check-circle text-2xl md:text-3xl text-green-500 mb-2"></i>
+                    <p class="text-xl md:text-2xl font-bold" id="babLulus">0</p>
+                    <p class="text-xs text-gray-400">Bab Lulus</p>
+                </div>
+                <div class="bg-black/30 rounded-lg p-4 text-center">
+                    <i class="fas fa-certificate text-2xl md:text-3xl text-yellow-500 mb-2"></i>
+                    <p class="text-xl md:text-2xl font-bold" id="sertifikatCount">0</p>
+                    <p class="text-xs text-gray-400">Sertifikat</p>
+                </div>
+            </div>
+            <div class="progress-container mb-2">
+                <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+            </div>
+            <p id="progressText" class="text-sm text-gray-400 text-center">Progress belajar Anda</p>
+        </div>
+    </div>
+
+    <!-- Belajar Page -->
+    <div id="page-belajar" class="page-content hidden">
+        <h2 class="text-xl md:text-2xl font-bold mb-4">📖 Pilih Bab</h2>
+        <div id="babList" class="space-y-3"></div>
+    </div>
+
+    <!-- Ujian Per Bab Page -->
+    <div id="page-ujian" class="page-content hidden">
+        <h2 class="text-xl md:text-2xl font-bold mb-4">📝 Ujian Per Bab</h2>
+        <div id="ujianBabList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+
+    <!-- Ujian Sertifikat Page -->
+    <div id="page-sertifikat" class="page-content hidden">
+        <h2 class="text-xl md:text-2xl font-bold mb-4">🎓 Ujian Sertifikat</h2>
+        <div id="sertifikatEligibility" class="card">
+            <div class="text-center py-8">
+                <div class="loading"></div>
+                <p class="mt-3">Memeriksa kelayakan...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Riwayat Sertifikat Page -->
+    <div id="page-riwayat" class="page-content hidden">
+        <h2 class="text-xl md:text-2xl font-bold mb-4">🏆 Sertifikat Saya</h2>
+        <div id="sertifikatList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+</div>
+
+<!-- Modal Belajar Materi -->
+<div id="belajarModal" class="modal">
+    <div class="modal-content">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="belajarTitle" class="text-xl font-bold">Belajar Materi</h3>
+            <button onclick="closeBelajarModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        </div>
+        <div id="belajarContent"></div>
+    </div>
+</div>
+
+<!-- Modal Ujian -->
+<div id="examModal" class="modal">
+    <div class="modal-content">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="examTitle" class="text-xl font-bold">Ujian</h3>
+            <button class="modal-close text-gray-400 hover:text-white text-2xl">&times;</button>
+        </div>
+        <div id="examQuestions" class="max-h-96 overflow-y-auto mb-4 space-y-4"></div>
+        <button id="submitExamBtn" class="btn-primary w-full">Submit Jawaban</button>
+    </div>
+</div>
+
+<!-- Modal Hasil -->
+<div id="resultModal" class="modal">
+    <div class="modal-content text-center">
+        <div id="resultContent"></div>
+        <button class="btn-primary mt-4 px-6" onclick="closeResultModal()">Tutup</button>
+    </div>
+</div>
+
+<!-- Modal Pembayaran -->
+<div id="paymentModal" class="modal">
+    <div class="modal-content">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Pembayaran Sertifikat</h3>
+            <button class="modal-close text-gray-400 hover:text-white text-2xl">&times;</button>
+        </div>
+        <div class="text-center mb-4">
+            <i class="fas fa-credit-card text-5xl text-yellow-500 mb-2"></i>
+            <p class="text-lg font-bold">Rp 20.000</p>
+        </div>
+        <div class="bg-gray-800 p-4 rounded-lg mb-4">
+            <p class="text-sm mb-2">Transfer ke:</p>
+            <p class="font-mono text-xs">Bank BCA - 1234567890</p>
+            <p class="font-mono text-xs">a.n Yayasan Tajwid Learning</p>
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm mb-2">Upload Bukti Transfer</label>
+            <input type="file" id="paymentProof" class="w-full p-2 rounded bg-black/50 border border-green-500/30" accept="image/*">
+        </div>
+        <button id="uploadPaymentBtn" class="btn-primary w-full">Konfirmasi Pembayaran</button>
+    </div>
+</div>
+
+<div id="loadingOverlay" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50" style="display: none;">
+    <div class="text-center"><div class="loading"></div><p class="mt-3">Memproses...</p></div>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:5000/api';
+    let currentBabExam = null;
+    let currentCertExam = null;
+    let allBabs = [];
+    let allMateris = [];
+
+    // ==================== MOBILE SIDEBAR ====================
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('overlay').classList.toggle('active');
+    }
+    
+    function closeSidebar() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('overlay').classList.remove('active');
+    }
+    
+    document.getElementById('menuToggle')?.addEventListener('click', toggleSidebar);
+
+    // ==================== AUTH ====================
+    (function() {
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('userRole');
+        if (!token || role !== 'user') {
+            window.location.href = 'login.html';
+        }
+        document.getElementById('userName').innerText = localStorage.getItem('username') || 'User';
+    })();
+
+    document.getElementById('logoutBtn').onclick = () => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    };
+
+    // ==================== SIDEBAR NAVIGATION ====================
+    function loadPage(page) {
+        document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+        document.getElementById(`page-${page}`).classList.remove('hidden');
+        
+        document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+        document.querySelector(`.sidebar-item[data-page="${page}"]`).classList.add('active');
+        
+        // Tutup sidebar di mobile setelah klik
+        closeSidebar();
+        
+        if (page === 'dashboard') loadDashboard();
+        if (page === 'belajar') loadBelajarPage();
+        if (page === 'ujian') loadUjianPage();
+        if (page === 'sertifikat') checkSertifikatEligibility();
+        if (page === 'riwayat') loadSertifikatSaya();
+    }
+
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.addEventListener('click', () => loadPage(item.dataset.page));
+    });
+
+    // ==================== DASHBOARD ====================
+    async function loadDashboard() {
+        try {
+            const token = localStorage.getItem('token');
+            const [progressRes, materiRes, sertifikatRes] = await Promise.all([
+                fetch(`${API_URL}/user/progress`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(`${API_URL}/user/materis`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(`${API_URL}/user/my-certificates`, { headers: { 'Authorization': `Bearer ${token}` } })
+            ]);
+            
+            const progress = await progressRes.json();
+            const materi = await materiRes.json();
+            const sertifikat = await sertifikatRes.json();
+            
+            if (progress.success) {
+                const persen = progress.data.rata_rata || 0;
+                document.getElementById('progressBar').style.width = `${persen}%`;
+                document.getElementById('babLulus').innerHTML = `${progress.data.bab_lulus}/${progress.data.total_bab}`;
+                if (progress.data.eligible_for_certificate) {
+                    document.getElementById('progressText').innerHTML = '🎉 Selamat! Anda siap mengikuti ujian sertifikat!';
+                }
+            }
+            document.getElementById('totalMateri').innerText = materi.success ? materi.data.length : 0;
+            document.getElementById('sertifikatCount').innerText = sertifikat.success ? sertifikat.data.length : 0;
+        } catch(e) { console.error(e); }
+    }
+
+    // ==================== BELAJAR PAGE ====================
+    async function loadBelajarPage() {
+        const container = document.getElementById('babList');
+        container.innerHTML = '<div class="text-center py-8"><div class="loading"></div><p>Loading bab...</p></div>';
+        
+        try {
+            const token = localStorage.getItem('token');
+            const [babsRes, materisRes] = await Promise.all([
+                fetch(`${API_URL}/user/babs`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(`${API_URL}/user/materis`, { headers: { 'Authorization': `Bearer ${token}` } })
+            ]);
+            
+            const babs = await babsRes.json();
+            const materis = await materisRes.json();
+            
+            if (babs.success) {
+                allBabs = babs.data;
+                allMateris = materis.success ? materis.data : [];
+                
+                const materiByBab = {};
+                allMateris.forEach(m => {
+                    if (!materiByBab[m.bab_id]) materiByBab[m.bab_id] = [];
+                    materiByBab[m.bab_id].push(m);
+                });
+                
+                container.innerHTML = allBabs.map(bab => {
+                    const babMateris = materiByBab[bab.id] || [];
+                    const materiCount = babMateris.length;
+                    
+                    return `
+                        <div class="card">
+                            <div class="flex justify-between items-center cursor-pointer" onclick="toggleBab(${bab.id})">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-layer-group text-xl text-green-500"></i>
+                                    <h3 class="text-lg md:text-xl font-bold">${escapeHtml(bab.nama)}</h3>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="badge badge-info text-xs">${materiCount} Materi</span>
+                                    <i id="icon-bab-${bab.id}" class="fas fa-chevron-down transition-transform"></i>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-400 mt-2">${escapeHtml(bab.deskripsi || '')}</p>
+                            <div id="materi-bab-${bab.id}" class="hidden mt-4 space-y-2">
+                                ${babMateris.length > 0 ? babMateris.map(m => `
+                                    <div class="materi-item" onclick="event.stopPropagation(); openBelajarModal(${m.id})">
+                                        <div class="flex items-start gap-3">
+                                            <i class="fas fa-book-open text-green-500 mt-1"></i>
+                                            <div class="flex-1">
+                                                <h4 class="font-bold text-sm md:text-base">${escapeHtml(m.judul)}</h4>
+                                                <p class="text-xs text-gray-400">${escapeHtml(m.deskripsi || '')}</p>
+                                                <div class="flex flex-wrap gap-2 mt-2 text-xs">
+                                                    ${m.file_video ? '<span class="text-blue-400"><i class="fas fa-video"></i> Video</span>' : ''}
+                                                    ${m.file_audio ? '<span class="text-purple-400"><i class="fas fa-headphones"></i> Audio</span>' : ''}
+                                                    ${m.file_gambar ? '<span class="text-green-400"><i class="fas fa-image"></i> Gambar</span>' : ''}
+                                                    ${m.file_pdf ? '<span class="text-yellow-400"><i class="fas fa-file-pdf"></i> PDF</span>' : ''}
+                                                </div>
+                                            </div>
+                                            <i class="fas fa-chevron-right text-gray-500 text-sm"></i>
+                                        </div>
+                                    </div>
+                                `).join('') : '<p class="text-gray-500 text-center py-4 text-sm">Belum ada materi untuk bab ini</p>'}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    function toggleBab(babId) {
+        const materiDiv = document.getElementById(`materi-bab-${babId}`);
+        const icon = document.getElementById(`icon-bab-${babId}`);
+        if (materiDiv.classList.contains('hidden')) {
+            materiDiv.classList.remove('hidden');
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            materiDiv.classList.add('hidden');
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    // ==================== MODAL BELAJAR MATERI ====================
+    async function openBelajarModal(materiId) {
+        showLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/user/materi/detail/${materiId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const result = await response.json();
+            showLoading(false);
+            
+            if (result.success) {
+                const m = result.data;
+                const modal = document.getElementById('belajarModal');
+                const title = document.getElementById('belajarTitle');
+                const content = document.getElementById('belajarContent');
+                
+                title.innerText = m.judul;
+                content.innerHTML = `
+                    <div class="space-y-4">
+                        <p class="text-gray-400">${escapeHtml(m.deskripsi || '')}</p>
+                        
+                        ${m.file_video ? `
+                            <div>
+                                <label class="block text-sm font-bold mb-2">🎬 Video Materi</label>
+                                <video controls class="w-full rounded-lg">
+                                    <source src="http://localhost:5000${m.file_video}" type="video/mp4">
+                                    Browser tidak mendukung video.
+                                </video>
+                            </div>
+                        ` : ''}
+                        
+                        ${m.file_audio ? `
+                            <div>
+                                <label class="block text-sm font-bold mb-2">🎵 Audio Materi</label>
+                                <audio controls class="w-full">
+                                    <source src="http://localhost:5000${m.file_audio}">
+                                </audio>
+                            </div>
+                        ` : ''}
+                        
+                        ${m.file_gambar ? `
+                            <div>
+                                <img src="http://localhost:5000${m.file_gambar}" alt="${escapeHtml(m.judul)}" class="rounded-lg">
+                            </div>
+                        ` : ''}
+                        
+                        ${m.file_pdf ? `
+                            <div>
+                                <a href="http://localhost:5000${m.file_pdf}" target="_blank" class="btn-primary inline-block text-sm">
+                                    <i class="fas fa-file-pdf"></i> Buka PDF Materi
+                                </a>
+                            </div>
+                        ` : ''}
+                        
+                        <div>
+                            <h3 class="text-lg font-bold mt-4">📖 Konten Materi</h3>
+                            <div class="bg-black/30 p-4 rounded-lg whitespace-pre-wrap text-sm">${escapeHtml(m.konten)}</div>
+                        </div>
+                    </div>
+                `;
+                modal.classList.add('active');
+            }
+        } catch(e) {
+            showLoading(false);
+            alert('Gagal memuat materi');
+        }
+    }
+
+    function closeBelajarModal() {
+        document.getElementById('belajarModal').classList.remove('active');
+    }
+
+    // ==================== UJIAN PER BAB ====================
+    async function loadUjianPage() {
+        const container = document.getElementById('ujianBabList');
+        container.innerHTML = '<div class="text-center py-8"><div class="loading"></div><p>Loading...</p></div>';
+        
+        try {
+            const token = localStorage.getItem('token');
+            const [babsRes, progressRes] = await Promise.all([
+                fetch(`${API_URL}/user/babs`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(`${API_URL}/user/progress`, { headers: { 'Authorization': `Bearer ${token}` } })
+            ]);
+            
+            const babs = await babsRes.json();
+            const progress = await progressRes.json();
+            
+            if (babs.success) {
+                const progressMap = {};
+                if (progress.success) {
+                    progress.data.babs.forEach(p => { progressMap[p.id] = p; });
+                }
+                
+                container.innerHTML = babs.data.map(bab => {
+                    const nilai = progressMap[bab.id]?.nilai || 0;
+                    const isLulus = progressMap[bab.id]?.is_lulus || false;
+                    return `
+                        <div class="card">
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="text-base md:text-lg font-bold">${escapeHtml(bab.nama)}</h3>
+                                <span class="badge ${isLulus ? 'badge-success' : 'badge-warning'} text-xs">
+                                    ${isLulus ? `✅ Lulus (${nilai}%)` : nilai > 0 ? `${nilai}%` : 'Belum'}
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-4">${escapeHtml(bab.deskripsi || '')}</p>
+                            ${!isLulus ? `
+                                <button onclick="startBabExam(${bab.id}, '${escapeHtml(bab.nama)}')" class="btn-primary w-full text-sm">
+                                    Mulai Ujian
+                                </button>
+                            ` : `
+                                <div class="text-center text-green-500 text-sm">✓ Anda telah lulus ujian bab ini</div>
+                            `}
+                        </div>
+                    `;
+                }).join('');
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    // ==================== UJIAN SERTIFIKAT ====================
+    async function checkSertifikatEligibility() {
+        const container = document.getElementById('sertifikatEligibility');
+        container.innerHTML = '<div class="text-center py-8"><div class="loading"></div><p>Memeriksa kelayakan...</p></div>';
+        
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/user/certificate-eligibility`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const result = await response.json();
+            
+            if (result.eligible) {
+                container.innerHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-check-circle text-5xl md:text-6xl text-green-500 mb-4"></i>
+                        <h3 class="text-xl md:text-2xl font-bold mb-2">Selamat!</h3>
+                        <p class="mb-4 text-sm">Anda telah menyelesaikan semua ujian bab dengan nilai minimal 80%.</p>
+                        <button onclick="startCertificateExam()" class="btn-primary px-6 md:px-8 py-3">
+                            Mulai Ujian Sertifikat
+                        </button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-lock text-5xl md:text-6xl text-gray-500 mb-4"></i>
+                        <h3 class="text-xl md:text-2xl font-bold mb-2">Belum Tersedia</h3>
+                        <p class="mb-2 text-sm">Anda harus menyelesaikan semua ujian bab terlebih dahulu.</p>
+                        <p class="text-sm text-gray-400">Progress: ${result.bab_lulus}/${result.total_bab} bab lulus</p>
+                        <button onclick="loadPage('ujian')" class="btn-outline mt-4 text-sm">
+                            Kembali ke Ujian Bab
+                        </button>
+                    </div>
+                `;
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    // ==================== FUNGSI UJIAN ====================
+    async function startBabExam(babId, babNama) {
+        showLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/user/start-bab-exam`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ bab_id: babId })
+            });
+            const result = await response.json();
+            showLoading(false);
+            
+            if (result.success) {
+                currentBabExam = result;
+                showExamModal(`Ujian Bab: ${babNama}`, result.soal, 'bab');
+            } else {
+                alert(result.message);
+            }
+        } catch(e) { showLoading(false); alert('Gagal memulai ujian'); }
+    }
+
+    async function startCertificateExam() {
+        showLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/user/start-certificate-exam`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({})
+            });
+            const result = await response.json();
+            showLoading(false);
+            
+            if (result.success) {
+                currentCertExam = result;
+                showExamModal('Ujian Sertifikat Tajwid', result.soal, 'sertifikat');
+            } else {
+                alert(result.message);
+            }
+        } catch(e) { showLoading(false); alert('Gagal memulai ujian sertifikat'); }
+    }
+
+    function showExamModal(title, soal, type) {
+        const modal = document.getElementById('examModal');
+        const container = document.getElementById('examQuestions');
+        document.getElementById('examTitle').innerText = title;
+        
+        container.innerHTML = `
+            <div class="bg-green-500/10 p-3 rounded-lg mb-4">
+                <p class="text-sm">📋 Total Soal: <strong>${soal.length}</strong> soal</p>
+            </div>
+            ${soal.map((s, idx) => `
+                <div class="bg-black/40 p-4 rounded-lg">
+                    <div class="flex justify-between mb-2">
+                        <span class="font-bold text-sm">Soal ${idx + 1}</span>
+                        <span class="badge badge-warning text-xs">Poin: ${s.poin}</span>
+                    </div>
+                    <p class="mb-3 text-sm">${escapeHtml(s.pertanyaan)}</p>
+                    <textarea id="jawaban_${s.id}" class="w-full p-2 rounded bg-black/50 border border-green-500/30" rows="4" placeholder="Tulis jawaban Anda di sini..."></textarea>
+                </div>
+            `).join('')}
+        `;
+        
+        modal.classList.add('active');
+        
+        const submitBtn = document.getElementById('submitExamBtn');
+        submitBtn.onclick = () => submitExam(type);
+    }
+
+    async function submitExam(type) {
+        if (!confirm('Yakin ingin mengumpulkan jawaban?')) return;
+        
+        const exam = type === 'bab' ? currentBabExam : currentCertExam;
+        const jawaban = [];
+        exam.soal.forEach(soal => {
+            const jawabanUser = document.getElementById(`jawaban_${soal.id}`).value;
+            if (jawabanUser.trim()) jawaban.push({ soal_id: soal.id, jawaban_user: jawabanUser });
+        });
+        
+        showLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const endpoint = type === 'bab' ? '/user/submit-bab-exam' : '/user/submit-certificate-exam';
+            const response = await fetch(`${API_URL}${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({
+                    session_id: exam.session_id,
+                    session_token: exam.session_token,
+                    jawaban: jawaban
+                })
+            });
+            const result = await response.json();
+            showLoading(false);
+            document.getElementById('examModal').classList.remove('active');
+            
+            showResultModal(result);
+            if (type === 'bab') { loadUjianPage(); loadDashboard(); }
+            if (type === 'sertifikat' && result.is_lulus) showPaymentModal();
+        } catch(e) { showLoading(false); alert('Gagal submit ujian'); }
+    }
+
+    // ==================== PEMBAYARAN ====================
+    function showPaymentModal() { document.getElementById('paymentModal').classList.add('active'); }
+    
+    document.getElementById('uploadPaymentBtn')?.addEventListener('click', async () => {
+        const file = document.getElementById('paymentProof').files[0];
+        if (!file) { alert('Silakan upload bukti pembayaran'); return; }
+        
+        const formData = new FormData();
+        formData.append('payment_proof', file);
+        formData.append('amount', 20000);
+        
+        showLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/payment/upload-proof`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            const result = await response.json();
+            showLoading(false);
+            if (result.success) {
+                alert('Bukti pembayaran berhasil diupload!');
+                document.getElementById('paymentModal').classList.remove('active');
+            } else { alert(result.message); }
+        } catch(e) { showLoading(false); alert('Gagal upload bukti pembayaran'); }
+    });
+
+    // ==================== SERTIFIKAT SAYA ====================
+    async function loadSertifikatSaya() {
+        const container = document.getElementById('sertifikatList');
+        container.innerHTML = '<div class="text-center py-8"><div class="loading"></div><p>Loading...</p></div>';
+        
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/user/my-certificates`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const result = await response.json();
+            
+            if (result.success && result.data.length > 0) {
+                container.innerHTML = result.data.map(cert => `
+                    <div class="card text-center">
+                        <i class="fas fa-certificate text-4xl md:text-5xl text-yellow-500 mb-3"></i>
+                        <h4 class="text-base md:text-lg font-bold">Sertifikat Tajwid</h4>
+                        <p class="text-xs mt-2">Diterbitkan: ${new Date(cert.issued_at).toLocaleDateString()}</p>
+                        <p class="text-xs text-gray-400">Tx: ${cert.transaction_hash?.substring(0, 15)}...</p>
+                        <a href="https://sepolia.etherscan.io/tx/${cert.transaction_hash}" target="_blank" class="inline-block mt-3 text-green-500 text-xs hover:underline">
+                            Lihat di Blockchain →
+                        </a>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = `<div class="card text-center"><i class="fas fa-box-open text-4xl md:text-5xl text-gray-500 mb-3"></i><p>Belum ada sertifikat</p><p class="text-xs text-gray-500 mt-1">Selesaikan ujian sertifikat dan lakukan pembayaran.</p></div>`;
+            }
+        } catch(e) { container.innerHTML = '<div class="card text-center text-red-400">Gagal memuat sertifikat</div>'; }
+    }
+
+    // ==================== HELPER ====================
+    function showResultModal(result) {
+        const modal = document.getElementById('resultModal');
+        const container = document.getElementById('resultContent');
+        const isLulus = result.is_lulus;
+        
+        container.innerHTML = `
+            <div class="text-center">
+                <div class="text-5xl md:text-6xl mb-4">${isLulus ? '🎉' : '📚'}</div>
+                <h3 class="text-xl md:text-2xl font-bold ${isLulus ? 'text-green-500' : 'text-red-500'} mb-2">
+                    ${isLulus ? 'SELAMAT!' : 'BELUM LULUS'}
+                </h3>
+                <p class="text-base md:text-lg mb-2">Nilai Anda: <strong>${result.persentase}%</strong></p>
+                <div class="w-full bg-gray-700 rounded-full h-2 mb-4">
+                    <div class="bg-green-500 h-2 rounded-full" style="width: ${result.persentase}%"></div>
+                </div>
+                <p class="text-sm text-gray-300 mb-4">${result.message}</p>
+            </div>
+        `;
+        modal.classList.add('active');
+    }
+
+    function closeResultModal() { document.getElementById('resultModal').classList.remove('active'); }
+    function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m);
+    }
+
+    // Close modals
+    document.querySelectorAll('.modal-close').forEach(btn => {
+        btn.addEventListener('click', () => btn.closest('.modal').classList.remove('active'));
+    });
+
+    // Initialize
+    loadPage('dashboard');
+</script>
+</body>
+</html>

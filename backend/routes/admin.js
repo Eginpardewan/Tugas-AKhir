@@ -1,0 +1,471 @@
+const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Konfigurasi upload file
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        let folder = 'docs';
+        if (file.fieldname === 'video') folder = 'videos';
+        else if (file.fieldname === 'audio') folder = 'audios';
+        else if (file.fieldname === 'gambar') folder = 'images';
+        
+        const uploadPath = path.join(__dirname, '../uploads', folder);
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+        }
+        cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + '-' + file.originalname);
+    }
+});
+
+const upload = multer({ storage, limits: { fileSize: 100 * 1024 * 1024 } });
+
+module.exports = (db, dbQuery) => {
+    const router = require('express').Router();
+    
+    // Middleware verify admin
+    const verifyAdmin = async (req, res, next) => {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+        
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'rahasia');
+            if (decoded.role !== 'admin') {
+                return res.status(403).json({ success: false, message: 'Forbidden' });
+            }
+            req.adminId = decoded.id;
+            next();
+        } catch (err) {
+            res.status(401).json({ success: false, message: 'Invalid token' });
+        }
+    };
+    
+    // ==================== BAB ====================
+    router.get('/babs', verifyAdmin, async (req, res) => {
+        try {
+            const babs = await dbQuery('SELECT * FROM babs ORDER BY urutan ASC');
+            res.json({ success: true, data: babs });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    // ✅ UPDATE URUTAN BAB - HARUS DIATAS ROUTE /:id
+    router.put('/bab/update-order', verifyAdmin, async (req, res) => {
+        const { orders } = req.body;
+        
+        console.log('Received update-order request:', orders);
+        
+        if (!orders || !Array.isArray(orders)) {
+            return res.status(400).json({ success: false, message: 'Invalid orders data' });
+        }
+        
+        try {
+            for (const item of orders) {
+                // item.urutan adalah index 0-based (0,1,2...), simpan sebagai 1,2,3...
+                const newUrutan = item.urutan + 1;
+                await dbQuery('UPDATE babs SET urutan = ? WHERE id = ?', [newUrutan, item.id]);
+            }
+            res.json({ success: true, message: 'Urutan bab berhasil diupdate' });
+        } catch (err) {
+            console.error('Error updating order:', err);
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    router.post('/bab', verifyAdmin, async (req, res) => {
+        const { nama, deskripsi, urutan } = req.body;
+        try {
+            let newUrutan = urutan;
+            if (!newUrutan || newUrutan === 0) {
+                const lastBab = await dbQuery('SELECT MAX(urutan) as maxUrutan FROM babs');
+                newUrutan = (lastBab[0].maxUrutan || 0) + 1;
+            }
+            const result = await dbQuery(
+                'INSERT INTO babs (nama, deskripsi, urutan) VALUES (?, ?, ?)',
+                [nama, deskripsi, newUrutan]
+            );
+            res.json({ success: true, id: result.insertId });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    router.put('/bab/:id', verifyAdmin, async (req, res) => {
+        const { nama, deskripsi, urutan } = req.body;
+        try {
+            await dbQuery(
+                'UPDATE babs SET nama = ?, deskripsi = ?, urutan = ? WHERE id = ?',
+                [nama, deskripsi, urutan, req.params.id]
+            );
+            res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    router.delete('/bab/:id', verifyAdmin, async (req, res) => {
+        try {
+            await dbQuery('DELETE FROM materis WHERE bab_id = ?', [req.params.id]);
+            await dbQuery('DELETE FROM soal_bab WHERE bab_id = ?', [req.params.id]);
+            await dbQuery('DELETE FROM babs WHERE id = ?', [req.params.id]);
+            res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    // ==================== MATERI ====================
+    router.get('/materis', verifyAdmin, async (req, res) => {
+        try {
+            const materis = await dbQuery(`
+                SELECT m.*, b.nama as bab_nama 
+                FROM materis m 
+                JOIN babs b ON m.bab_id = b.id 
+                ORDER BY b.urutan, m.urutan
+            `);
+            res.json({ success: true, data: materis });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    router.post('/materi', verifyAdmin, upload.fields([
+        { name: 'video', maxCount: 1 },
+        { name: 'audio', maxCount: 1 },
+        { name: 'gambar', maxCount: 1 },
+        { name: 'pdf', maxCount: 1 }
+    ]), async (req, res) => {
+        console.log('=== MATERI UPLOAD ===');
+        console.log('Body:', req.body);
+        console.log('Files:', req.files);
+        
+        const { bab_id, judul, deskripsi, konten, urutan } = req.body;
+        const files = req.files;
+        
+        if (!bab_id) {
+            console.log('ERROR: bab_id is missing');
+            return res.status(400).json({ success: false, message: 'bab_id is required' });
+        }
+        
+        const fileVideo = files?.video?.[0]?.filename ? `/uploads/videos/${files.video[0].filename}` : null;
+        const fileAudio = files?.audio?.[0]?.filename ? `/uploads/audios/${files.audio[0].filename}` : null;
+        const fileGambar = files?.gambar?.[0]?.filename ? `/uploads/images/${files.gambar[0].filename}` : null;
+        const filePdf = files?.pdf?.[0]?.filename ? `/uploads/docs/${files.pdf[0].filename}` : null;
+        
+        console.log('Processed files:', { fileVideo, fileAudio, fileGambar, filePdf });
+        
+        try {
+            const sql = `INSERT INTO materis (bab_id, judul, deskripsi, konten, file_video, file_audio, file_gambar, file_pdf, urutan) 
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            const params = [bab_id, judul, deskripsi, konten, fileVideo, fileAudio, fileGambar, filePdf, urutan || 0];
+            
+            console.log('SQL:', sql);
+            console.log('Params:', params);
+            
+            const result = await dbQuery(sql, params);
+            console.log('Insert result:', result);
+            
+            res.json({ success: true, id: result.insertId });
+        } catch (err) {
+            console.error('Database error:', err);
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    router.put('/materi/:id', verifyAdmin, upload.fields([
+        { name: 'video', maxCount: 1 },
+        { name: 'audio', maxCount: 1 },
+        { name: 'gambar', maxCount: 1 },
+        { name: 'pdf', maxCount: 1 }
+    ]), async (req, res) => {
+        const { judul, deskripsi, konten, urutan } = req.body;
+        const files = req.files;
+        const materiId = req.params.id;
+        
+        try {
+            const oldMateri = await dbQuery('SELECT * FROM materis WHERE id = ?', [materiId]);
+            if (oldMateri.length === 0) {
+                return res.status(404).json({ success: false, message: 'Materi tidak ditemukan' });
+            }
+            
+            let fileVideo = oldMateri[0].file_video;
+            let fileAudio = oldMateri[0].file_audio;
+            let fileGambar = oldMateri[0].file_gambar;
+            let filePdf = oldMateri[0].file_pdf;
+            
+            if (files?.video?.[0]?.filename) {
+                fileVideo = `/uploads/videos/${files.video[0].filename}`;
+                if (oldMateri[0].file_video) {
+                    const oldPath = path.join(__dirname, '..', oldMateri[0].file_video);
+                    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+                }
+            }
+            if (files?.audio?.[0]?.filename) {
+                fileAudio = `/uploads/audios/${files.audio[0].filename}`;
+                if (oldMateri[0].file_audio) {
+                    const oldPath = path.join(__dirname, '..', oldMateri[0].file_audio);
+                    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+                }
+            }
+            if (files?.gambar?.[0]?.filename) {
+                fileGambar = `/uploads/images/${files.gambar[0].filename}`;
+                if (oldMateri[0].file_gambar) {
+                    const oldPath = path.join(__dirname, '..', oldMateri[0].file_gambar);
+                    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+                }
+            }
+            if (files?.pdf?.[0]?.filename) {
+                filePdf = `/uploads/docs/${files.pdf[0].filename}`;
+                if (oldMateri[0].file_pdf) {
+                    const oldPath = path.join(__dirname, '..', oldMateri[0].file_pdf);
+                    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+                }
+            }
+            
+            await dbQuery(
+                `UPDATE materis SET 
+                    judul = ?, deskripsi = ?, konten = ?, 
+                    file_video = ?, file_audio = ?, file_gambar = ?, file_pdf = ?, 
+                    urutan = ?, updated_at = NOW() 
+                 WHERE id = ?`,
+                [judul, deskripsi, konten, fileVideo, fileAudio, fileGambar, filePdf, urutan || 0, materiId]
+            );
+            
+            res.json({ success: true });
+        } catch (err) {
+            console.error('Error updating materi:', err);
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    router.delete('/materi/:id', verifyAdmin, async (req, res) => {
+        try {
+            const materi = await dbQuery('SELECT file_video, file_audio, file_gambar, file_pdf FROM materis WHERE id = ?', [req.params.id]);
+            if (materi.length > 0) {
+                const files = materi[0];
+                if (files.file_video) {
+                    const filePath = path.join(__dirname, '..', files.file_video);
+                    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                }
+                if (files.file_audio) {
+                    const filePath = path.join(__dirname, '..', files.file_audio);
+                    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                }
+                if (files.file_gambar) {
+                    const filePath = path.join(__dirname, '..', files.file_gambar);
+                    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                }
+                if (files.file_pdf) {
+                    const filePath = path.join(__dirname, '..', files.file_pdf);
+                    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                }
+            }
+            await dbQuery('DELETE FROM materis WHERE id = ?', [req.params.id]);
+            res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    // ==================== SOAL PER BAB ====================
+    router.get('/soal-bab', verifyAdmin, async (req, res) => {
+        try {
+            const soals = await dbQuery(`
+                SELECT s.*, b.nama as bab_nama 
+                FROM soal_bab s 
+                JOIN babs b ON s.bab_id = b.id 
+                ORDER BY b.urutan, s.id
+            `);
+            res.json({ success: true, data: soals });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    router.post('/soal-bab', verifyAdmin, async (req, res) => {
+        const { bab_id, pertanyaan, jawaban_benar, kata_kunci, poin } = req.body;
+        try {
+            await dbQuery(
+                `INSERT INTO soal_bab (bab_id, pertanyaan, jawaban_benar, kata_kunci, poin) 
+                 VALUES (?, ?, ?, ?, ?)`,
+                [bab_id, pertanyaan, jawaban_benar, kata_kunci, poin || 10]
+            );
+            res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    router.put('/soal-bab/:id', verifyAdmin, async (req, res) => {
+        const { pertanyaan, jawaban_benar, kata_kunci, poin, is_active } = req.body;
+        try {
+            await dbQuery(
+                `UPDATE soal_bab SET pertanyaan = ?, jawaban_benar = ?, kata_kunci = ?, poin = ?, is_active = ? WHERE id = ?`,
+                [pertanyaan, jawaban_benar, kata_kunci, poin, is_active, req.params.id]
+            );
+            res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    router.delete('/soal-bab/:id', verifyAdmin, async (req, res) => {
+        try {
+            await dbQuery('DELETE FROM soal_bab WHERE id = ?', [req.params.id]);
+            res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    // ==================== SOAL SERTIFIKAT ====================
+    router.get('/soal-sertifikat', verifyAdmin, async (req, res) => {
+        try {
+            const soals = await dbQuery('SELECT * FROM soal_sertifikat ORDER BY id');
+            res.json({ success: true, data: soals });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    router.post('/soal-sertifikat', verifyAdmin, async (req, res) => {
+        const { pertanyaan, jawaban_benar, kata_kunci, poin } = req.body;
+        try {
+            await dbQuery(
+                `INSERT INTO soal_sertifikat (pertanyaan, jawaban_benar, kata_kunci, poin) 
+                 VALUES (?, ?, ?, ?)`,
+                [pertanyaan, jawaban_benar, kata_kunci, poin || 10]
+            );
+            res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    router.put('/soal-sertifikat/:id', verifyAdmin, async (req, res) => {
+        const { pertanyaan, jawaban_benar, kata_kunci, poin, is_active } = req.body;
+        try {
+            await dbQuery(
+                `UPDATE soal_sertifikat SET pertanyaan = ?, jawaban_benar = ?, kata_kunci = ?, poin = ?, is_active = ? WHERE id = ?`,
+                [pertanyaan, jawaban_benar, kata_kunci, poin, is_active, req.params.id]
+            );
+            res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    router.delete('/soal-sertifikat/:id', verifyAdmin, async (req, res) => {
+        try {
+            await dbQuery('DELETE FROM soal_sertifikat WHERE id = ?', [req.params.id]);
+            res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    // ==================== USER ====================
+    router.get('/users', verifyAdmin, async (req, res) => {
+        try {
+            const users = await dbQuery('SELECT id, username, email, created_at FROM users ORDER BY created_at DESC');
+            res.json({ success: true, data: users });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    // ==================== STATISTIK ====================
+    router.get('/stats', verifyAdmin, async (req, res) => {
+        try {
+            const [totalUsers] = await dbQuery('SELECT COUNT(*) as total FROM users');
+            const [totalBabs] = await dbQuery('SELECT COUNT(*) as total FROM babs');
+            const [totalMateris] = await dbQuery('SELECT COUNT(*) as total FROM materis');
+            const [totalSoalBab] = await dbQuery('SELECT COUNT(*) as total FROM soal_bab WHERE is_active = 1');
+            const [totalSoalSertifikat] = await dbQuery('SELECT COUNT(*) as total FROM soal_sertifikat WHERE is_active = 1');
+            const [pendingPayments] = await dbQuery('SELECT COUNT(*) as total FROM payments WHERE status = "pending"');
+            const [totalCertificates] = await dbQuery('SELECT COUNT(*) as total FROM certificates');
+            
+            res.json({
+                success: true,
+                data: {
+                    totalUsers: totalUsers.total,
+                    totalBabs: totalBabs.total,
+                    totalMateris: totalMateris.total,
+                    totalSoalBab: totalSoalBab.total,
+                    totalSoalSertifikat: totalSoalSertifikat.total,
+                    pendingPayments: pendingPayments.total,
+                    totalCertificates: totalCertificates.total
+                }
+            });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    // ==================== PEMBAYARAN ====================
+    router.get('/payments', verifyAdmin, async (req, res) => {
+        try {
+            const payments = await dbQuery(`
+                SELECT p.*, u.username, u.email 
+                FROM payments p 
+                JOIN users u ON p.user_id = u.id 
+                ORDER BY p.created_at DESC
+            `);
+            res.json({ success: true, data: payments });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    router.put('/verify-payment/:id', verifyAdmin, async (req, res) => {
+        try {
+            await dbQuery(
+                'UPDATE payments SET status = "verified", verified_by = ?, verified_at = NOW() WHERE id = ?',
+                [req.adminId, req.params.id]
+            );
+            res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    // ==================== SERTIFIKAT BLOCKCHAIN ====================
+    router.get('/certificates', verifyAdmin, async (req, res) => {
+        try {
+            const certificates = await dbQuery(`
+                SELECT c.*, u.username, u.email 
+                FROM certificates c 
+                JOIN users u ON c.user_id = u.id 
+                ORDER BY c.issued_at DESC
+            `);
+            res.json({ success: true, data: certificates });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    router.post('/issue-certificate', verifyAdmin, async (req, res) => {
+        const { user_id, payment_id, transaction_hash, blockchain_id } = req.body;
+        try {
+            await dbQuery(
+                `INSERT INTO certificates (user_id, payment_id, transaction_hash, blockchain_id, issued_by) 
+                 VALUES (?, ?, ?, ?, ?)`,
+                [user_id, payment_id, transaction_hash, blockchain_id, req.adminId]
+            );
+            await dbQuery('UPDATE payments SET status = "completed" WHERE id = ?', [payment_id]);
+            res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    return router;
+};

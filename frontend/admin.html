@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Tajwid Learning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #e2e8f0; }
+        
+        .navbar {
+            background: #0f0f1a;
+            border-bottom: 1px solid #2E7D32;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 12px 24px;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            width: 260px;
+            height: calc(100vh - 60px);
+            background: #111827;
+            border-right: 1px solid #2E7D32;
+            overflow-y: auto;
+            z-index: 90;
+        }
+        
+        .main-content {
+            margin-left: 260px;
+            padding: 80px 24px 24px;
+            min-height: 100vh;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-item:hover { background: rgba(46, 125, 50, 0.2); }
+        .sidebar-item.active { background: rgba(46, 125, 50, 0.3); border-left-color: #2E7D32; color: #4caf50; }
+        .sidebar-category { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; padding: 16px 20px 8px; font-weight: 600; }
+        
+        .card { background: #1a1a2e; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #2E7D32; }
+        
+        .btn-primary { background: #2E7D32; color: white; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; }
+        .btn-primary:hover { background: #1B5E20; }
+        .btn-outline { background: transparent; border: 1px solid #2E7D32; color: #2E7D32; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+        .btn-warning { background: #f59e0b; color: white; padding: 4px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-danger { background: #ef4444; color: white; padding: 4px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; }
+        .btn-danger:hover { background: #dc2626; }
+        
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-success { background: rgba(46, 125, 50, 0.2); color: #4caf50; border: 1px solid #4caf50; }
+        .badge-warning { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid #ffc107; }
+        .badge-info { background: rgba(33, 150, 243, 0.2); color: #2196f3; border: 1px solid #2196f3; }
+        
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        
+        .file-info { background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 12px; }
+        .file-info p { margin: 4px 0; }
+        
+        .loading { display: inline-block; width: 30px; height: 30px; border: 3px solid #2E7D32; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1a1a2e; }
+        ::-webkit-scrollbar-thumb { background: #2E7D32; border-radius: 4px; }
+        
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s; width: 280px; z-index: 200; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 70px 15px 20px; }
+            .menu-btn { display: block; }
+            .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; display: none; }
+            .overlay.active { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <button class="menu-btn bg-transparent border-none text-white text-2xl cursor-pointer hidden" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <i class="fas fa-quran text-2xl text-green-600"></i>
+            <span class="text-xl font-bold">Tajwid Admin</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span id="adminName" class="text-sm text-gray-300">Admin</span>
+            <button id="logoutBtn" class="text-red-400 hover:text-red-300">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- Overlay untuk mobile -->
+<div id="overlay" class="overlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<div id="sidebar" class="sidebar">
+    <div class="sidebar-category">MENU UTAMA</div>
+    <div class="sidebar-item active" data-menu="dashboard">
+        <i class="fas fa-chart-line w-5"></i> Dashboard
+    </div>
+    <div class="sidebar-item" data-menu="bab">
+        <i class="fas fa-layer-group w-5"></i> Kelola Bab
+    </div>
+    <div class="sidebar-item" data-menu="materi">
+        <i class="fas fa-book w-5"></i> Kelola Materi
+    </div>
+    <div class="sidebar-item" data-menu="soal-bab">
+        <i class="fas fa-pencil-alt w-5"></i> Soal Per Bab
+    </div>
+    <div class="sidebar-item" data-menu="soal-sertifikat">
+        <i class="fas fa-certificate w-5"></i> Soal Sertifikat
+    </div>
+    <div class="sidebar-item" data-menu="users">
+        <i class="fas fa-users w-5"></i> Kelola User
+    </div>
+    <div class="sidebar-item" data-menu="payments">
+        <i class="fas fa-credit-card w-5"></i> Pembayaran
+    </div>
+    <div class="sidebar-item" data-menu="certificates">
+        <i class="fas fa-medal w-5"></i> Sertifikat
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Dashboard -->
+    <div id="page-dashboard" class="page-content">
+        <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="card text-center">
+                <i class="fas fa-layer-group text-3xl text-green-500 mb-2"></i>
+                <p class="text-2xl font-bold" id="totalBab">0</p>
+                <p class="text-sm text-gray-400">Total Bab</p>
+            </div>
+            <div class="card text-center">
+                <i class="fas fa-book text-3xl text-green-500 mb-2"></i>
+                <p class="text-2xl font-bold" id="totalMateri">0</p>
+                <p class="text-sm text-gray-400">Total Materi</p>
+            </div>
+            <div class="card text-center">
+                <i class="fas fa-pencil-alt text-3xl text-green-500 mb-2"></i>
+                <p class="text-2xl font-bold" id="totalSoalBab">0</p>
+                <p class="text-sm text-gray-400">Soal Per Bab</p>
+            </div>
+            <div class="card text-center">
+                <i class="fas fa-certificate text-3xl text-green-500 mb-2"></i>
+                <p class="text-2xl font-bold" id="totalSoalSertifikat">0</p>
+                <p class="text-sm text-gray-400">Soal Sertifikat</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kelola Bab -->
+    <div id="page-bab" class="page-content hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">📚 Kelola Bab</h2>
+            <div class="flex gap-3">
+                <button onclick="saveBabOrder()" class="btn-outline text-sm">
+                    <i class="fas fa-save"></i> Simpan Urutan
+                </button>
+                <button onclick="openBabModal()" class="btn-primary">
+                    <i class="fas fa-plus"></i> Tambah Bab
+                </button>
+            </div>
+        </div>
+        <div class="card overflow-x-auto">
+            <table class="table">
+                <thead><tr><th>No</th><th>Nama Bab</th><th>Deskripsi</th><th>Aksi</th></tr></thead>
+                <tbody id="babTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Kelola Materi -->
+    <div id="page-materi" class="page-content hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">📖 Kelola Materi</h2>
+            <button onclick="openMateriModal()" class="btn-primary">
+                <i class="fas fa-plus"></i> Tambah Materi
+            </button>
+        </div>
+        <div class="card mb-4">
+            <label class="block text-sm mb-2">Filter Berdasarkan Bab</label>
+            <select id="filterBabMateri" class="w-full p-2 rounded bg-black/50 border border-green-500/30 text-white" onchange="loadMateriByBab()">
+                <option value="all">Semua Bab</option>
+            </select>
+        </div>
+        <div id="materiList" class="space-y-4"></div>
+    </div>
+
+    <!-- Soal Per Bab -->
+    <div id="page-soal-bab" class="page-content hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">📝 Soal Per Bab</h2>
+            <button onclick="openSoalBabModal()" class="btn-primary">
+                <i class="fas fa-plus"></i> Tambah Soal
+            </button>
+        </div>
+        <div id="soalBabList" class="space-y-4"></div>
+    </div>
+
+    <!-- Soal Sertifikat -->
+    <div id="page-soal-sertifikat" class="page-content hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">🎓 Soal Sertifikat</h2>
+            <button onclick="openSoalSertifikatModal()" class="btn-primary">
+                <i class="fas fa-plus"></i> Tambah Soal
+            </button>
+        </div>
+        <div id="soalSertifikatList" class="space-y-4"></div>
+    </div>
+
+    <!-- Kelola User -->
+    <div id="page-users" class="page-content hidden">
+        <h2 class="text-2xl font-bold mb-4">👥 Kelola User</h2>
+        <div class="card overflow-x-auto">
+            <table class="table">
+                <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Terdaftar</th></tr></thead>
+                <tbody id="usersTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pembayaran -->
+    <div id="page-payments" class="page-content hidden">
+        <h2 class="text-2xl font-bold mb-4">💰 Pembayaran Sertifikat</h2>
+        <div class="card overflow-x-auto">
+            <table class="table">
+                <thead><tr><th>User</th><th>Jumlah</th><th>Bukti</th><th>Status</th><th>Aksi</th></tr></thead>
+                <tbody id="paymentsTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Sertifikat -->
+    <div id="page-certificates" class="page-content hidden">
+        <h2 class="text-2xl font-bold mb-4">🏆 Sertifikat Blockchain</h2>
+        <div id="certificateList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+</div>
+
+<!-- Modal Bab -->
+<div id="babModal" class="modal">
+    <div class="modal-content max-w-md">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="babModalTitle" class="text-xl font-bold">Tambah Bab</h3>
+            <button onclick="closeBabModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        </div>
+        <form id="babForm">
+            <input type="hidden" id="babId">
+            <div class="mb-3"><label class="block text-sm mb-1">Nama Bab</label><input type="text" id="babNama" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></div>
+            <div class="mb-3"><label class="block text-sm mb-1">Deskripsi</label><textarea id="babDeskripsi" rows="3" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></textarea></div>
+            <div class="mb-4"><label class="block text-sm mb-1">Urutan</label><input type="number" id="babUrutan" class="w-full p-2 rounded bg-black/50 border border-green-500/30" value="0"></div>
+            <div class="flex gap-3"><button type="submit" class="btn-primary flex-1">Simpan</button><button type="button" onclick="closeBabModal()" class="btn-outline flex-1">Batal</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Materi -->
+<div id="materiModal" class="modal">
+    <div class="modal-content max-w-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="materiModalTitle" class="text-xl font-bold">Tambah Materi</h3>
+            <button onclick="closeMateriModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        </div>
+        <form id="materiForm" enctype="multipart/form-data">
+            <input type="hidden" id="materiId">
+            <div class="mb-3"><label class="block text-sm mb-1">Pilih Bab</label><select id="materiBabId" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></select></div>
+            <div class="mb-3"><label class="block text-sm mb-1">Judul Materi</label><input type="text" id="materiJudul" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></div>
+            <div class="mb-3"><label class="block text-sm mb-1">Deskripsi</label><input type="text" id="materiDeskripsi" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></div>
+            <div class="mb-3"><label class="block text-sm mb-1">Konten (Teks)</label><textarea id="materiKonten" rows="5" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></textarea></div>
+            <div class="mb-3"><label class="block text-sm mb-1">Upload Video (MP4)</label><input type="file" id="materiVideo" accept="video/mp4,video/webm" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></div>
+            <div class="mb-3"><label class="block text-sm mb-1">Upload Audio (MP3)</label><input type="file" id="materiAudio" accept="audio/mpeg" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></div>
+            <div class="mb-3"><label class="block text-sm mb-1">Upload Gambar</label><input type="file" id="materiGambar" accept="image/*" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></div>
+            <div class="mb-3"><label class="block text-sm mb-1">Upload PDF</label><input type="file" id="materiPdf" accept="application/pdf" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></div>
+            <div class="mb-4"><label class="block text-sm mb-1">Urutan</label><input type="number" id="materiUrutan" class="w-full p-2 rounded bg-black/50 border border-green-500/30" value="0"></div>
+            <div id="existingFiles" class="file-info"></div>
+            <div class="flex gap-3"><button type="submit" class="btn-primary flex-1">Simpan</button><button type="button" onclick="closeMateriModal()" class="btn-outline flex-1">Batal</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Soal Bab (dengan Edit) -->
+<div id="soalBabModal" class="modal">
+    <div class="modal-content max-w-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="soalBabModalTitle" class="text-xl font-bold">Tambah Soal Per Bab</h3>
+            <button onclick="closeSoalBabModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        </div>
+        <form id="soalBabForm">
+            <input type="hidden" id="soalBabId">
+            <div class="mb-3"><label class="block text-sm mb-1">Pilih Bab</label><select id="soalBabBabId" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></select></div>
+            <div class="mb-3"><label class="block text-sm mb-1">Pertanyaan</label><textarea id="soalBabPertanyaan" rows="3" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></textarea></div>
+            <div class="mb-3"><label class="block text-sm mb-1">Jawaban Benar</label><textarea id="soalBabJawaban" rows="3" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></textarea></div>
+            <div class="mb-3"><label class="block text-sm mb-1">Kata Kunci</label><input type="text" id="soalBabKataKunci" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></div>
+            <div class="mb-4"><label class="block text-sm mb-1">Poin</label><input type="number" id="soalBabPoin" class="w-full p-2 rounded bg-black/50 border border-green-500/30" value="10"></div>
+            <div class="flex gap-3"><button type="submit" class="btn-primary flex-1">Simpan</button><button type="button" onclick="closeSoalBabModal()" class="btn-outline flex-1">Batal</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Soal Sertifikat (dengan Edit) -->
+<div id="soalSertifikatModal" class="modal">
+    <div class="modal-content max-w-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="soalSertifikatModalTitle" class="text-xl font-bold">Tambah Soal Sertifikat</h3>
+            <button onclick="closeSoalSertifikatModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        </div>
+        <form id="soalSertifikatForm">
+            <input type="hidden" id="soalSertifikatId">
+            <div class="mb-3"><label class="block text-sm mb-1">Pertanyaan</label><textarea id="soalSertifikatPertanyaan" rows="3" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></textarea></div>
+            <div class="mb-3"><label class="block text-sm mb-1">Jawaban Benar</label><textarea id="soalSertifikatJawaban" rows="3" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></textarea></div>
+            <div class="mb-3"><label class="block text-sm mb-1">Kata Kunci</label><input type="text" id="soalSertifikatKataKunci" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></div>
+            <div class="mb-4"><label class="block text-sm mb-1">Poin</label><input type="number" id="soalSertifikatPoin" class="w-full p-2 rounded bg-black/50 border border-green-500/30" value="10"></div>
+            <div class="flex gap-3"><button type="submit" class="btn-primary flex-1">Simpan</button><button type="button" onclick="closeSoalSertifikatModal()" class="btn-outline flex-1">Batal</button></div>
+        </form>
+    </div>
+</div>
+
+<div id="loadingOverlay" class="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]" style="display: none;">
+    <div class="text-center"><div class="loading"></div><p class="mt-3">Memproses...</p></div>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:5000/api';
+    let currentBabs = [];
+
+    // ==================== MOBILE SIDEBAR ====================
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('overlay').classList.toggle('active');
+    }
+    function closeSidebar() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('overlay').classList.remove('active');
+    }
+    document.getElementById('menuToggle')?.addEventListener('click', toggleSidebar);
+
+    // ==================== AUTH ====================
+    (function() {
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('userRole');
+        if (!token || role !== 'admin') {
+            window.location.href = 'login.html';
+        }
+        document.getElementById('adminName').innerText = localStorage.getItem('username') || 'Admin';
+    })();
+
+    document.getElementById('logoutBtn').onclick = () => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    };
+
+    // ==================== SIDEBAR NAVIGATION ====================
+    function loadPage(page) {
+        document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+        document.getElementById(`page-${page}`).classList.remove('hidden');
+        document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+        document.querySelector(`.sidebar-item[data-menu="${page}"]`).classList.add('active');
+        closeSidebar();
+        
+        if (page === 'dashboard') loadDashboard();
+        if (page === 'bab') loadBabs();
+        if (page === 'materi') { loadBabSelect(); loadMateriByBab(); }
+        if (page === 'soal-bab') { loadBabSelectForSoal(); loadSoalBab(); }
+        if (page === 'soal-sertifikat') loadSoalSertifikat();
+        if (page === 'users') loadUsers();
+        if (page === 'payments') loadPayments();
+        if (page === 'certificates') loadCertificates();
+    }
+
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.addEventListener('click', () => loadPage(item.dataset.menu));
+    });
+
+    // ==================== DASHBOARD ====================
+    async function loadDashboard() {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('totalBab').innerText = data.data.totalBabs || 0;
+                document.getElementById('totalMateri').innerText = data.data.totalMateris || 0;
+                document.getElementById('totalSoalBab').innerText = data.data.totalSoalBab || 0;
+                document.getElementById('totalSoalSertifikat').innerText = data.data.totalSoalSertifikat || 0;
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    // ==================== BAB ====================
+    async function loadBabs() {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/babs`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success) {
+                currentBabs = data.data.sort((a, b) => a.urutan - b.urutan);
+                renderBabTable();
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    function renderBabTable() {
+        const tbody = document.getElementById('babTableBody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = currentBabs.map((bab, idx) => {
+            const nomorUrut = idx + 1;
+            return `
+                <tr>
+                    <td class="font-bold">${nomorUrut}</td>
+                    <td>${escapeHtml(bab.nama)}</td>
+                    <td class="max-w-md truncate">${escapeHtml(bab.deskripsi || '-')}</td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <button onclick="moveBabUp(${idx})" class="text-yellow-400 hover:text-yellow-300 px-2 py-1 rounded" ${idx === 0 ? 'disabled style="opacity:0.5"' : ''}>
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button onclick="moveBabDown(${idx})" class="text-yellow-400 hover:text-yellow-300 px-2 py-1 rounded" ${idx === currentBabs.length - 1 ? 'disabled style="opacity:0.5"' : ''}>
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                            <button onclick="editBab(${bab.id})" class="btn-warning ml-2">Edit</button>
+                            <button onclick="deleteBab(${bab.id})" class="btn-danger">Hapus</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function moveBabUp(index) {
+        if (index === 0) return;
+        [currentBabs[index - 1], currentBabs[index]] = [currentBabs[index], currentBabs[index - 1]];
+        currentBabs.forEach((bab, i) => { bab.urutan = i; });
+        renderBabTable();
+    }
+
+    function moveBabDown(index) {
+        if (index === currentBabs.length - 1) return;
+        [currentBabs[index + 1], currentBabs[index]] = [currentBabs[index], currentBabs[index + 1]];
+        currentBabs.forEach((bab, i) => { bab.urutan = i; });
+        renderBabTable();
+    }
+
+    async function saveBabOrder() {
+        const token = localStorage.getItem('token');
+        const orders = currentBabs.map(bab => ({ id: bab.id, urutan: bab.urutan }));
+        showLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/admin/bab/update-order`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ orders })
+            });
+            const data = await res.json();
+            showLoading(false);
+            if (data.success) {
+                alert('Urutan bab berhasil disimpan!');
+                await loadBabs();
+                await loadDashboard();
+            } else {
+                alert('Gagal menyimpan urutan: ' + (data.message || 'Unknown error'));
+            }
+        } catch(e) {
+            showLoading(false);
+            alert('Error: ' + e.message);
+        }
+    }
+
+    async function editBab(id) {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/babs`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success) {
+                const bab = data.data.find(b => b.id === id);
+                if (bab) {
+                    document.getElementById('babId').value = bab.id;
+                    document.getElementById('babNama').value = bab.nama;
+                    document.getElementById('babDeskripsi').value = bab.deskripsi || '';
+                    document.getElementById('babUrutan').value = bab.urutan;
+                    document.getElementById('babModalTitle').innerText = 'Edit Bab';
+                    openBabModal();
+                }
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    function openBabModal() { document.getElementById('babModal').classList.add('active'); }
+    function closeBabModal() { 
+        document.getElementById('babModal').classList.remove('active'); 
+        document.getElementById('babForm').reset(); 
+        document.getElementById('babId').value = '';
+        document.getElementById('babModalTitle').innerText = 'Tambah Bab';
+    }
+
+    document.getElementById('babForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const token = localStorage.getItem('token');
+        const id = document.getElementById('babId').value;
+        const data = { nama: document.getElementById('babNama').value, deskripsi: document.getElementById('babDeskripsi').value, urutan: parseInt(document.getElementById('babUrutan').value) };
+        const url = id ? `${API_URL}/admin/bab/${id}` : `${API_URL}/admin/bab`;
+        const method = id ? 'PUT' : 'POST';
+        showLoading(true);
+        try {
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
+            showLoading(false);
+            if (res.ok) { 
+                alert(id ? 'Bab berhasil diupdate' : 'Bab berhasil ditambahkan'); 
+                closeBabModal(); 
+                await loadBabs(); 
+                await loadDashboard(); 
+            } else {
+                alert('Gagal menyimpan bab');
+            }
+        } catch(e) { showLoading(false); alert('Error: ' + e.message); }
+    });
+
+    async function deleteBab(id) {
+        if (!confirm('Yakin ingin menghapus bab ini?')) return;
+        const token = localStorage.getItem('token');
+        showLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/admin/bab/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            showLoading(false);
+            if (res.ok) { alert('Bab berhasil dihapus'); await loadBabs(); await loadDashboard(); }
+            else alert('Gagal menghapus bab');
+        } catch(e) { showLoading(false); alert('Error: ' + e.message); }
+    }
+
+    // ==================== MATERI ====================
+    async function loadBabSelect() {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/admin/babs`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success) {
+            const options = '<option value="">-- Pilih Bab --</option>' + data.data.map(b => `<option value="${b.id}">${escapeHtml(b.nama)}</option>`).join('');
+            document.getElementById('materiBabId').innerHTML = options;
+            document.getElementById('filterBabMateri').innerHTML = '<option value="all">Semua Bab</option>' + data.data.map(b => `<option value="${b.id}">${escapeHtml(b.nama)}</option>`).join('');
+        }
+    }
+
+    async function loadMateriByBab() {
+        const token = localStorage.getItem('token');
+        const filterBab = document.getElementById('filterBabMateri').value;
+        showLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/admin/materis`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            showLoading(false);
+            if (data.success) {
+                let materis = data.data;
+                if (filterBab !== 'all') materis = materis.filter(m => m.bab_id == filterBab);
+                const container = document.getElementById('materiList');
+                if (!container) return;
+                if (materis.length === 0) { container.innerHTML = '<div class="card text-center">Belum ada materi. Silakan tambah materi baru.</div>'; return; }
+                container.innerHTML = materis.map(m => `
+                    <div class="card">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 flex-wrap mb-2">
+                                    <h3 class="font-bold text-lg">${escapeHtml(m.judul)}</h3>
+                                    <span class="badge badge-success">Bab: ${escapeHtml(m.bab_nama || m.bab_id)}</span>
+                                    <span class="badge badge-info">Urutan: ${m.urutan || 0}</span>
+                                </div>
+                                <p class="text-sm text-gray-400">${escapeHtml(m.deskripsi || '')}</p>
+                                <div class="flex gap-3 mt-2 text-xs">
+                                    ${m.file_video ? '<span class="text-blue-400"><i class="fas fa-video"></i> Video</span>' : ''}
+                                    ${m.file_audio ? '<span class="text-purple-400"><i class="fas fa-headphones"></i> Audio</span>' : ''}
+                                    ${m.file_gambar ? '<span class="text-green-400"><i class="fas fa-image"></i> Gambar</span>' : ''}
+                                    ${m.file_pdf ? '<span class="text-yellow-400"><i class="fas fa-file-pdf"></i> PDF</span>' : ''}
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="editMateri(${m.id})" class="btn-warning">Edit</button>
+                                <button onclick="deleteMateri(${m.id})" class="btn-danger">Hapus</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } catch(e) { showLoading(false); console.error(e); }
+    }
+
+    async function editMateri(id) {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/materis`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success) {
+                const materi = data.data.find(m => m.id === id);
+                if (materi) {
+                    document.getElementById('materiId').value = materi.id;
+                    document.getElementById('materiBabId').value = materi.bab_id;
+                    document.getElementById('materiJudul').value = materi.judul;
+                    document.getElementById('materiDeskripsi').value = materi.deskripsi || '';
+                    document.getElementById('materiKonten').value = materi.konten;
+                    document.getElementById('materiUrutan').value = materi.urutan || 0;
+                    let fileHtml = '';
+                    if (materi.file_video) fileHtml += `<p>🎥 Video: ${materi.file_video.split('/').pop()}</p>`;
+                    if (materi.file_audio) fileHtml += `<p>🎵 Audio: ${materi.file_audio.split('/').pop()}</p>`;
+                    if (materi.file_gambar) fileHtml += `<p>🖼️ Gambar: ${materi.file_gambar.split('/').pop()}</p>`;
+                    if (materi.file_pdf) fileHtml += `<p>📄 PDF: ${materi.file_pdf.split('/').pop()}</p>`;
+                    if (fileHtml) { fileHtml = `<div class="text-xs"><p class="text-yellow-500 mb-1">📁 File yang sudah ada:</p>${fileHtml}<p class="text-yellow-500 mt-1">⚠️ Upload file baru akan mengganti file lama</p></div>`;
+                    }
+                    document.getElementById('existingFiles').innerHTML = fileHtml;
+                    document.getElementById('materiModalTitle').innerText = 'Edit Materi';
+                    openMateriModal();
+                }
+            }
+        } catch(e) { alert('Gagal memuat data materi'); }
+    }
+
+    function openMateriModal() { document.getElementById('materiModal').classList.add('active'); }
+    function closeMateriModal() { 
+        document.getElementById('materiModal').classList.remove('active'); 
+        document.getElementById('materiForm').reset(); 
+        document.getElementById('materiId').value = '';
+        document.getElementById('existingFiles').innerHTML = '';
+        document.getElementById('materiModalTitle').innerText = 'Tambah Materi';
+    }
+
+    document.getElementById('materiForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const token = localStorage.getItem('token');
+        const materiId = document.getElementById('materiId').value;
+        const babId = document.getElementById('materiBabId').value;
+        if (!babId) { alert('Pilih bab terlebih dahulu!'); return; }
+        const formData = new FormData();
+        formData.append('bab_id', babId);
+        formData.append('judul', document.getElementById('materiJudul').value);
+        formData.append('deskripsi', document.getElementById('materiDeskripsi').value);
+        formData.append('konten', document.getElementById('materiKonten').value);
+        formData.append('urutan', document.getElementById('materiUrutan').value);
+        if (document.getElementById('materiVideo').files[0]) formData.append('video', document.getElementById('materiVideo').files[0]);
+        if (document.getElementById('materiAudio').files[0]) formData.append('audio', document.getElementById('materiAudio').files[0]);
+        if (document.getElementById('materiGambar').files[0]) formData.append('gambar', document.getElementById('materiGambar').files[0]);
+        if (document.getElementById('materiPdf').files[0]) formData.append('pdf', document.getElementById('materiPdf').files[0]);
+        const url = materiId ? `${API_URL}/admin/materi/${materiId}` : `${API_URL}/admin/materi`;
+        const method = materiId ? 'PUT' : 'POST';
+        showLoading(true);
+        try {
+            const res = await fetch(url, { method, headers: { 'Authorization': `Bearer ${token}` }, body: formData });
+            const result = await res.json();
+            showLoading(false);
+            if (result.success) { 
+                alert(materiId ? 'Materi berhasil diupdate!' : 'Materi berhasil ditambahkan!'); 
+                closeMateriModal(); 
+                await loadMateriByBab(); 
+                await loadDashboard(); 
+            } else { alert('Gagal: ' + (result.message || 'Unknown error')); }
+        } catch(e) { showLoading(false); alert('Error: ' + e.message); }
+    });
+
+    async function deleteMateri(id) {
+        if (!confirm('Yakin ingin menghapus materi ini?')) return;
+        const token = localStorage.getItem('token');
+        showLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/admin/materi/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            showLoading(false);
+            if (res.ok) { alert('Materi berhasil dihapus'); await loadMateriByBab(); await loadDashboard(); }
+            else alert('Gagal menghapus materi');
+        } catch(e) { showLoading(false); alert('Error: ' + e.message); }
+    }
+
+    // ==================== SOAL BAB (Dengan Edit) ====================
+    async function loadBabSelectForSoal() {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/admin/babs`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('soalBabBabId').innerHTML = '<option value="">-- Pilih Bab --</option>' + data.data.map(b => `<option value="${b.id}">${escapeHtml(b.nama)}</option>`).join('');
+        }
+    }
+
+    async function loadSoalBab() {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/admin/soal-bab`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success) {
+            const container = document.getElementById('soalBabList');
+            if (!container) return;
+            if (data.data.length === 0) { container.innerHTML = '<div class="card text-center">Belum ada soal. Silakan tambah soal baru.</div>'; return; }
+            container.innerHTML = data.data.map(s => `
+                <div class="card">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="font-bold">${escapeHtml(s.pertanyaan.substring(0, 100))}...</h3>
+                            <p class="text-sm text-gray-400 mt-1">Bab: ${escapeHtml(s.bab_nama)}</p>
+                            <p class="text-xs text-gray-500">Jawaban: ${escapeHtml(s.jawaban_benar.substring(0, 80))}...</p>
+                            ${s.kata_kunci ? `<p class="text-xs text-gray-500">Kata Kunci: ${escapeHtml(s.kata_kunci)}</p>` : ''}
+                            <span class="badge badge-info text-xs mt-1">Poin: ${s.poin}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editSoalBab(${s.id})" class="btn-warning">Edit</button>
+                            <button onclick="deleteSoalBab(${s.id})" class="btn-danger">Hapus</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    async function editSoalBab(id) {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/soal-bab`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success) {
+                const soal = data.data.find(s => s.id === id);
+                if (soal) {
+                    document.getElementById('soalBabId').value = soal.id;
+                    document.getElementById('soalBabBabId').value = soal.bab_id;
+                    document.getElementById('soalBabPertanyaan').value = soal.pertanyaan;
+                    document.getElementById('soalBabJawaban').value = soal.jawaban_benar;
+                    document.getElementById('soalBabKataKunci').value = soal.kata_kunci || '';
+                    document.getElementById('soalBabPoin').value = soal.poin;
+                    document.getElementById('soalBabModalTitle').innerText = 'Edit Soal Per Bab';
+                    openSoalBabModal();
+                }
+            }
+        } catch(e) { console.error(e); alert('Gagal memuat data soal'); }
+    }
+
+    function openSoalBabModal() { 
+        document.getElementById('soalBabModal').classList.add('active'); 
+    }
+    
+    function closeSoalBabModal() { 
+        document.getElementById('soalBabModal').classList.remove('active'); 
+        document.getElementById('soalBabForm').reset(); 
+        document.getElementById('soalBabId').value = '';
+        document.getElementById('soalBabModalTitle').innerText = 'Tambah Soal Per Bab';
+    }
+
+    document.getElementById('soalBabForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const token = localStorage.getItem('token');
+        const id = document.getElementById('soalBabId').value;
+        const data = { 
+            bab_id: document.getElementById('soalBabBabId').value, 
+            pertanyaan: document.getElementById('soalBabPertanyaan').value, 
+            jawaban_benar: document.getElementById('soalBabJawaban').value, 
+            kata_kunci: document.getElementById('soalBabKataKunci').value, 
+            poin: parseInt(document.getElementById('soalBabPoin').value) 
+        };
+        const url = id ? `${API_URL}/admin/soal-bab/${id}` : `${API_URL}/admin/soal-bab`;
+        const method = id ? 'PUT' : 'POST';
+        showLoading(true);
+        try {
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
+            showLoading(false);
+            if (res.ok) { 
+                alert(id ? 'Soal berhasil diupdate!' : 'Soal berhasil ditambahkan'); 
+                closeSoalBabModal(); 
+                await loadSoalBab(); 
+                await loadDashboard(); 
+            } else {
+                alert('Gagal menyimpan soal');
+            }
+        } catch(e) { showLoading(false); alert('Error: ' + e.message); }
+    });
+
+    async function deleteSoalBab(id) {
+        if (!confirm('Yakin ingin menghapus soal ini?')) return;
+        const token = localStorage.getItem('token');
+        showLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/admin/soal-bab/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            showLoading(false);
+            if (res.ok) { alert('Soal berhasil dihapus'); await loadSoalBab(); await loadDashboard(); }
+            else alert('Gagal menghapus soal');
+        } catch(e) { showLoading(false); alert('Error: ' + e.message); }
+    }
+
+    // ==================== SOAL SERTIFIKAT (Dengan Edit) ====================
+    async function loadSoalSertifikat() {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/admin/soal-sertifikat`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success) {
+            const container = document.getElementById('soalSertifikatList');
+            if (!container) return;
+            if (data.data.length === 0) { container.innerHTML = '<div class="card text-center">Belum ada soal sertifikat.</div>'; return; }
+            container.innerHTML = data.data.map(s => `
+                <div class="card">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="font-bold">${escapeHtml(s.pertanyaan.substring(0, 100))}...</h3>
+                            <p class="text-xs text-gray-500">Jawaban: ${escapeHtml(s.jawaban_benar.substring(0, 80))}...</p>
+                            ${s.kata_kunci ? `<p class="text-xs text-gray-500">Kata Kunci: ${escapeHtml(s.kata_kunci)}</p>` : ''}
+                            <span class="badge badge-info text-xs mt-1">Poin: ${s.poin}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editSoalSertifikat(${s.id})" class="btn-warning">Edit</button>
+                            <button onclick="deleteSoalSertifikat(${s.id})" class="btn-danger">Hapus</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    async function editSoalSertifikat(id) {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/soal-sertifikat`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success) {
+                const soal = data.data.find(s => s.id === id);
+                if (soal) {
+                    document.getElementById('soalSertifikatId').value = soal.id;
+                    document.getElementById('soalSertifikatPertanyaan').value = soal.pertanyaan;
+                    document.getElementById('soalSertifikatJawaban').value = soal.jawaban_benar;
+                    document.getElementById('soalSertifikatKataKunci').value = soal.kata_kunci || '';
+                    document.getElementById('soalSertifikatPoin').value = soal.poin;
+                    document.getElementById('soalSertifikatModalTitle').innerText = 'Edit Soal Sertifikat';
+                    openSoalSertifikatModal();
+                }
+            }
+        } catch(e) { console.error(e); alert('Gagal memuat data soal'); }
+    }
+
+    function openSoalSertifikatModal() { document.getElementById('soalSertifikatModal').classList.add('active'); }
+    function closeSoalSertifikatModal() { 
+        document.getElementById('soalSertifikatModal').classList.remove('active'); 
+        document.getElementById('soalSertifikatForm').reset(); 
+        document.getElementById('soalSertifikatId').value = '';
+        document.getElementById('soalSertifikatModalTitle').innerText = 'Tambah Soal Sertifikat';
+    }
+
+    document.getElementById('soalSertifikatForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const token = localStorage.getItem('token');
+        const id = document.getElementById('soalSertifikatId').value;
+        const data = { 
+            pertanyaan: document.getElementById('soalSertifikatPertanyaan').value, 
+            jawaban_benar: document.getElementById('soalSertifikatJawaban').value, 
+            kata_kunci: document.getElementById('soalSertifikatKataKunci').value, 
+            poin: parseInt(document.getElementById('soalSertifikatPoin').value) 
+        };
+        const url = id ? `${API_URL}/admin/soal-sertifikat/${id}` : `${API_URL}/admin/soal-sertifikat`;
+        const method = id ? 'PUT' : 'POST';
+        showLoading(true);
+        try {
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
+            showLoading(false);
+            if (res.ok) { 
+                alert(id ? 'Soal sertifikat berhasil diupdate!' : 'Soal sertifikat berhasil ditambahkan'); 
+                closeSoalSertifikatModal(); 
+                await loadSoalSertifikat(); 
+                await loadDashboard(); 
+            } else {
+                alert('Gagal menyimpan soal');
+            }
+        } catch(e) { showLoading(false); alert('Error: ' + e.message); }
+    });
+
+    async function deleteSoalSertifikat(id) {
+        if (!confirm('Yakin ingin menghapus soal ini?')) return;
+        const token = localStorage.getItem('token');
+        showLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/admin/soal-sertifikat/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            showLoading(false);
+            if (res.ok) { alert('Soal berhasil dihapus'); await loadSoalSertifikat(); await loadDashboard(); }
+            else alert('Gagal menghapus soal');
+        } catch(e) { showLoading(false); alert('Error: ' + e.message); }
+    }
+
+    // ==================== USER ====================
+    async function loadUsers() {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch(`${API_URL}/admin/users`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success && data.data) {
+                const tbody = document.getElementById('usersTableBody');
+                if (tbody) {
+                    tbody.innerHTML = data.data.map(u => `
+                        <tr>
+                            <td>${u.id}</td>
+                            <td>${escapeHtml(u.username)}</td>
+                            <td>${escapeHtml(u.email)}</td>
+                            <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('');
+                }
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    // ==================== PEMBAYARAN ====================
+    async function loadPayments() {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch(`${API_URL}/admin/payments`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success && data.data) {
+                const tbody = document.getElementById('paymentsTableBody');
+                if (tbody) {
+                    tbody.innerHTML = data.data.map(p => `
+                        <tr>
+                            <td>${escapeHtml(p.username)}</td>
+                            <td>Rp ${p.amount?.toLocaleString()}</td>
+                            <td>${p.payment_proof ? `<a href="${p.payment_proof}" target="_blank" class="text-blue-400">Lihat</a>` : '-'}</td>
+                            <td><span class="badge ${p.status === 'pending' ? 'badge-warning' : 'badge-success'}">${p.status}</span></td>
+                            <td>${p.status === 'pending' ? `<button onclick="verifyPayment(${p.id})" class="btn-primary text-sm py-1 px-2">Verifikasi</button>` : '-'}</td>
+                        </tr>
+                    `).join('');
+                }
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    async function verifyPayment(id) {
+        const token = localStorage.getItem('token');
+        showLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/admin/verify-payment/${id}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+            showLoading(false);
+            if (res.ok) { alert('Pembayaran diverifikasi'); await loadPayments(); }
+            else alert('Gagal verifikasi');
+        } catch(e) { showLoading(false); alert('Error: ' + e.message); }
+    }
+
+    // ==================== SERTIFIKAT ====================
+    async function loadCertificates() {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch(`${API_URL}/admin/certificates`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            const container = document.getElementById('certificateList');
+            if (!container) return;
+            if (data.success && data.data && data.data.length > 0) {
+                container.innerHTML = data.data.map(c => `
+                    <div class="card text-center">
+                        <i class="fas fa-certificate text-4xl text-yellow-500 mb-2"></i>
+                        <p><strong>${escapeHtml(c.username)}</strong></p>
+                        <p class="text-xs text-gray-400">Tx: ${c.transaction_hash?.substring(0, 15)}...</p>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<div class="card text-center">Belum ada sertifikat</div>';
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    // ==================== HELPER ====================
+    function showLoading(show) {
+        const loader = document.getElementById('loadingOverlay');
+        if (loader) loader.style.display = show ? 'flex' : 'none';
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m);
+    }
+
+    // Initialize
+    loadPage('dashboard');
+</script>
+</body>
+</html>

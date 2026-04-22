@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Tajwid Learning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-dark-bg min-h-screen flex items-center justify-center">
+    <div class="cyber-card p-8 w-full max-w-md mx-4">
+        <div class="text-center mb-6">
+            <i class="fas fa-quran text-4xl text-neon-gold mb-3"></i>
+            <h2 class="cyber-header text-2xl">LOGIN</h2>
+            <p class="text-gray-400 text-sm mt-2">Masuk ke akun Anda</p>
+        </div>
+        
+        <form id="loginForm">
+            <div class="mb-4">
+                <label class="block text-sm mb-2">Login Sebagai</label>
+                <select id="role" class="cyber-select w-full" required>
+                    <option value="user">Siswa / User</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm mb-2">Email</label>
+                <input type="email" id="email" class="cyber-input w-full" required>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm mb-2">Password</label>
+                <input type="password" id="password" class="cyber-input w-full" required>
+            </div>
+            <button type="submit" class="btn-cyber w-full py-3">LOGIN</button>
+        </form>
+        
+        <div id="message" class="mt-4 text-center text-sm"></div>
+        
+        <p class="text-center text-sm text-gray-400 mt-4">
+            Belum punya akun? <a href="register.html" class="text-neon-green hover:underline">Daftar disini</a>
+        </p>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const role = document.getElementById('role').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            
+            try {
+                messageDiv.innerHTML = '<div class="text-yellow-400">Memproses...</div>';
+                
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, role })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    localStorage.setItem('token', result.token);
+                    localStorage.setItem('userRole', result.user.role);
+                    localStorage.setItem('userId', result.user.id);
+                    localStorage.setItem('username', result.user.username);
+                    
+                    messageDiv.innerHTML = '<div class="text-green-400">Login berhasil! Redirecting...</div>';
+                    
+                    setTimeout(() => {
+                        if (result.user.role === 'admin') {
+                            window.location.href = 'admin.html';
+                        } else {
+                            window.location.href = 'user.html';
+                        }
+                    }, 1000);
+                } else {
+                    messageDiv.innerHTML = `<div class="text-red-400">${result.message}</div>`;
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<div class="text-red-400">Gagal terhubung ke server</div>';
+            }
+        });
+    </script>
+</body>
+</html>
