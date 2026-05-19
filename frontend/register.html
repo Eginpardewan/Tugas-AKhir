@@ -9,37 +9,71 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-dark-bg min-h-screen flex items-center justify-center">
-    <div class="cyber-card p-8 w-full max-w-md mx-4">
+<body class="bg-dark-bg min-h-screen flex items-center justify-center py-12">
+    <div class="cyber-card p-8 w-full max-w-2xl mx-4">
         <div class="text-center mb-6">
-            <i class="fas fa-quran text-4xl text-neon-gold mb-3"></i>
+            <img src="img/logo.jpeg" alt="Logo Al-Firqoh" class="mx-auto h-16 w-16 mb-3 rounded-full border-2 border-neon-gold shadow-[0_0_15px_rgba(255,215,0,0.5)]">
             <h2 class="cyber-header text-2xl">DAFTAR AKUN</h2>
             <p class="text-gray-400 text-sm mt-2">Daftar sebagai Siswa</p>
         </div>
         
-        <form id="registerForm">
-            <div class="mb-4">
-                <label class="block text-sm mb-2">Username</label>
-                <input type="text" id="username" class="cyber-input w-full" required>
+        <form id="registerForm" enctype="multipart/form-data">
+            <!-- DATA WAJIB -->
+            <div class="mb-8">
+                <h3 class="text-xl font-bold text-neon-gold border-b border-neon-gold/30 pb-2 mb-4">DATA WAJIB (Harus Diisi)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm mb-2 text-gray-300">Username <span class="text-red-500">*</span></label>
+                        <input type="text" id="username" name="username" class="cyber-input w-full" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-2 text-gray-300">Email <span class="text-red-500">*</span></label>
+                        <input type="email" id="email" name="email" class="cyber-input w-full" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-2 text-gray-300">Password <span class="text-red-500">*</span></label>
+                        <input type="password" id="password" name="password" class="cyber-input w-full" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-2 text-gray-300">Konfirmasi Password <span class="text-red-500">*</span></label>
+                        <input type="password" id="confirmPassword" class="cyber-input w-full" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm mb-2 text-gray-300">Nama Lengkap (Sesuai KTP/Ijazah) <span class="text-red-500">*</span></label>
+                        <input type="text" id="nama_lengkap" name="nama_lengkap" class="cyber-input w-full" required>
+                    </div>
+                </div>
             </div>
-            <div class="mb-4">
-                <label class="block text-sm mb-2">Email</label>
-                <input type="email" id="email" class="cyber-input w-full" required>
+
+            <!-- DATA TAMBAHAN -->
+            <div class="mb-8">
+                <h3 class="text-xl font-bold text-neon-blue border-b border-neon-blue/30 pb-2 mb-4">DATA TAMBAHAN (Opsional)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm mb-2 text-gray-400">Instansi / Sekolah / Kampus</label>
+                        <input type="text" id="instansi" name="instansi" class="cyber-input w-full" placeholder="Nama Instansi">
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-2 text-gray-400">Nomor HP/WA</label>
+                        <input type="text" id="no_hp" name="no_hp" class="cyber-input w-full" placeholder="Contoh: 08123456789">
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-2 text-gray-400">Kota / Kabupaten</label>
+                        <input type="text" id="kota" name="kota" class="cyber-input w-full" placeholder="Asal Kota">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm mb-2 text-gray-400">Foto Profil</label>
+                        <input type="file" id="foto_profil" name="foto_profil" accept="image/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-neon-green/20 file:text-neon-green hover:file:bg-neon-green/30 transition-all cursor-pointer">
+                    </div>
+                </div>
             </div>
-            <div class="mb-4">
-                <label class="block text-sm mb-2">Password</label>
-                <input type="password" id="password" class="cyber-input w-full" required>
-            </div>
-            <div class="mb-6">
-                <label class="block text-sm mb-2">Konfirmasi Password</label>
-                <input type="password" id="confirmPassword" class="cyber-input w-full" required>
-            </div>
-            <button type="submit" class="btn-cyber w-full py-3">DAFTAR</button>
+
+            <button type="submit" class="btn-cyber w-full py-4 text-lg font-bold tracking-wider">DAFTAR SEKARANG</button>
         </form>
         
-        <div id="message" class="mt-4 text-center text-sm"></div>
+        <div id="message" class="mt-4 text-center text-sm font-bold p-3 rounded hidden"></div>
         
-        <p class="text-center text-sm text-gray-400 mt-4">
+        <p class="text-center text-sm text-gray-400 mt-6">
             Sudah punya akun? <a href="login.html" class="text-neon-green hover:underline">Login disini</a>
         </p>
     </div>
@@ -54,38 +88,41 @@
             const confirm = document.getElementById('confirmPassword').value;
             const messageDiv = document.getElementById('message');
             
+            messageDiv.classList.remove('hidden');
+            
             if (password !== confirm) {
-                messageDiv.innerHTML = '<div class="text-red-400">Password tidak cocok!</div>';
+                messageDiv.className = "mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500";
+                messageDiv.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Password tidak cocok!';
                 return;
             }
             
-            const data = {
-                username: document.getElementById('username').value,
-                email: document.getElementById('email').value,
-                password: password
-            };
+            const formElement = document.getElementById('registerForm');
+            const formData = new FormData(formElement);
             
             try {
-                messageDiv.innerHTML = '<div class="text-yellow-400">Memproses...</div>';
+                messageDiv.className = "mt-4 text-center text-sm font-bold p-3 rounded bg-yellow-900/50 text-yellow-400 border border-yellow-500";
+                messageDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses Pendaftaran...';
                 
                 const response = await fetch(`${API_URL}/auth/register`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                    body: formData // No Content-Type header needed, browser sets it for FormData
                 });
                 
                 const result = await response.json();
                 
                 if (result.success) {
-                    messageDiv.innerHTML = '<div class="text-green-400">Registrasi berhasil! Silakan login.</div>';
+                    messageDiv.className = "mt-4 text-center text-sm font-bold p-3 rounded bg-green-900/50 text-green-400 border border-green-500";
+                    messageDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Registrasi berhasil! Mengalihkan ke halaman login...';
                     setTimeout(() => {
                         window.location.href = 'login.html';
                     }, 2000);
                 } else {
-                    messageDiv.innerHTML = `<div class="text-red-400">${result.message}</div>`;
+                    messageDiv.className = "mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500";
+                    messageDiv.innerHTML = `<i class="fas fa-times-circle mr-2"></i> ${result.message}`;
                 }
             } catch (error) {
-                messageDiv.innerHTML = '<div class="text-red-400">Gagal terhubung ke server</div>';
+                messageDiv.className = "mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500";
+                messageDiv.innerHTML = '<i class="fas fa-wifi mr-2"></i> Gagal terhubung ke server';
             }
         });
     </script>

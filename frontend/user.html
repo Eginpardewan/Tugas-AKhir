@@ -9,11 +9,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #e2e8f0; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background: #111827; color: #e2e8f0; overflow-x: hidden; animation: fadeIn 0.4s ease-in-out; }
         
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .page-content { animation: fadeIn 0.4s ease-in-out; }
+
         /* Navbar */
         .navbar {
-            background: #0f0f1a;
+            background: #1f2937;
             border-bottom: 1px solid #2E7D32;
             position: fixed;
             top: 0;
@@ -30,7 +36,7 @@
             top: 60px;
             width: 260px;
             height: calc(100vh - 60px);
-            background: #111827;
+            background: #1f2937;
             border-right: 1px solid #2E7D32;
             overflow-y: auto;
             z-index: 90;
@@ -56,7 +62,7 @@
         
         /* Card Styles */
         .card {
-            background: #1a1a2e;
+            background: #1f2937;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
@@ -64,7 +70,7 @@
         }
         
         .materi-item {
-            background: #0f0f1a;
+            background: #1f2937;
             border-radius: 10px;
             padding: 16px;
             margin-bottom: 12px;
@@ -72,7 +78,7 @@
             transition: all 0.2s;
             border: 1px solid #2E7D32;
         }
-        .materi-item:hover { background: #1a1a2e; transform: translateX(5px); }
+        .materi-item:hover { background: #374151; transform: translateX(5px); }
         
         .btn-primary { background: #2E7D32; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; }
         .btn-primary:hover { background: #1B5E20; }
@@ -112,7 +118,7 @@
         }
         .modal.active { display: flex; }
         .modal-content {
-            background: #1a1a2e;
+            background: #1f2937;
             border-radius: 16px;
             padding: 24px;
             width: 90%;
@@ -130,7 +136,7 @@
         
         /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #1a1a2e; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
         ::-webkit-scrollbar-thumb { background: #2E7D32; border-radius: 4px; }
         
         /* Responsive */
@@ -160,6 +166,48 @@
                 display: block;
             }
         }
+        /* Neon input */
+        .cyber-input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1.5px solid #2E7D32;
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            width: 100%;
+            outline: none;
+        }
+        .cyber-input:focus {
+            border-color: #4caf50;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.7);
+        }
+        .cyber-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        .cyber-input:disabled {
+            color: rgba(255, 255, 255, 0.4);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Profile Tabs */
+        .profile-tab {
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .profile-tab:hover { color: #e2e8f0; }
+        .profile-tab.active {
+            color: #4caf50;
+            border-bottom-color: #4caf50;
+            background: rgba(46, 125, 50, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -171,7 +219,7 @@
             <button class="menu-btn" id="menuToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <i class="fas fa-quran text-2xl text-green-600"></i>
+            <img src="img/logo.jpeg" alt="Logo Al-Firqoh" class="h-8 w-8 rounded-full border border-green-600">
             <span class="text-xl font-bold">Tajwid Learning</span>
         </div>
         <div class="flex items-center gap-4">
@@ -208,6 +256,11 @@
     <div class="sidebar-item" data-page="riwayat">
         <i class="fas fa-medal w-5"></i>
         <span>Sertifikat Saya</span>
+    </div>
+    <div class="sidebar-category mt-4">AKUN</div>
+    <div class="sidebar-item" data-page="pengaturan">
+        <i class="fas fa-cog w-5"></i>
+        <span>Pengaturan Profil</span>
     </div>
 </div>
 
@@ -264,12 +317,145 @@
         </div>
     </div>
 
-    <!-- Riwayat Sertifikat Page -->
+    <!-- Riwayat / Sertifikat Page -->
     <div id="page-riwayat" class="page-content hidden">
         <h2 class="text-xl md:text-2xl font-bold mb-4">🏆 Sertifikat Saya</h2>
-        <div id="sertifikatList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        <div id="sertifikatList" class="grid gap-4">
+            <!-- Sertifikat list will be rendered here -->
+        </div>
     </div>
+
+    <!-- Pengaturan Profil Page -->
+    <div id="page-pengaturan" class="page-content hidden">
+        <h2 class="text-xl md:text-2xl font-bold mb-4"><i class="fas fa-user-cog text-green-400"></i> Pengaturan Profil</h2>
+
+        <!-- Tabs -->
+        <div class="flex gap-2 mb-6 border-b border-gray-700">
+            <button class="profile-tab active px-5 py-2 text-sm font-semibold rounded-t-lg" data-tab="lihat">
+                <i class="fas fa-id-card mr-2"></i>Lihat Profil
+            </button>
+            <button class="profile-tab px-5 py-2 text-sm font-semibold rounded-t-lg" data-tab="edit">
+                <i class="fas fa-user-edit mr-2"></i>Edit Profil
+            </button>
+            <button class="profile-tab px-5 py-2 text-sm font-semibold rounded-t-lg" data-tab="password">
+                <i class="fas fa-lock mr-2"></i>Ganti Password
+            </button>
+        </div>
+
+        <!-- TAB: Lihat Profil -->
+        <div id="profile-tab-lihat" class="profile-tab-content">
+            <div class="card">
+                <div class="flex flex-col md:flex-row gap-6 items-center md:items-start">
+                    <div class="flex-shrink-0">
+                        <div class="w-28 h-28 rounded-full border-4 border-green-500 bg-gray-800 flex items-center justify-center overflow-hidden">
+                            <i id="viewAvatarIcon" class="fas fa-user-circle text-6xl text-gray-500"></i>
+                            <img id="viewAvatar" src="" alt="Profile" class="w-full h-full object-cover hidden">
+                        </div>
+                    </div>
+                    <div class="flex-1 w-full">
+                        <h3 id="view_nama" class="text-2xl font-bold text-white mb-1">-</h3>
+                        <p id="view_nomor_peserta" class="text-yellow-400 font-mono text-sm mb-4">Nomor Peserta: -</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-black/30 rounded-lg p-3">
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Username</p>
+                                <p id="view_username" class="font-semibold text-white">-</p>
+                            </div>
+                            <div class="bg-black/30 rounded-lg p-3">
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Email</p>
+                                <p id="view_email" class="font-semibold text-white">-</p>
+                            </div>
+                            <div class="bg-black/30 rounded-lg p-3">
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Nomor HP/WA</p>
+                                <p id="view_no_hp" class="font-semibold text-white">-</p>
+                            </div>
+                            <div class="bg-black/30 rounded-lg p-3">
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Kota / Kabupaten</p>
+                                <p id="view_kota" class="font-semibold text-white">-</p>
+                            </div>
+                            <div class="md:col-span-2 bg-black/30 rounded-lg p-3">
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Instansi / Sekolah / Kampus</p>
+                                <p id="view_instansi" class="font-semibold text-white">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Edit Profil -->
+        <div id="profile-tab-edit" class="profile-tab-content hidden">
+            <div class="card">
+                <form id="profileForm" enctype="multipart/form-data">
+                    <!-- Foto Profil -->
+                    <div class="flex items-center gap-6 mb-6">
+                        <div id="profileAvatarContainer" class="w-24 h-24 rounded-full border-2 border-green-500 bg-gray-800 flex items-center justify-center overflow-hidden">
+                            <i id="profileAvatarIcon" class="fas fa-user-circle text-5xl text-gray-500"></i>
+                            <img id="profilePreview" src="" alt="Profile" class="w-full h-full object-cover hidden">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-2 text-gray-400">Ganti Foto Profil</label>
+                            <input type="file" id="edit_foto_profil" name="foto_profil" accept="image/*" class="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-900/30 file:text-green-400 hover:file:bg-green-900/50 cursor-pointer" onchange="previewProfileImage(this)">
+                            <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG. Maks 5MB</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm mb-2 text-gray-300">Username</label>
+                            <input type="text" id="edit_username" name="username" class="cyber-input w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-2 text-gray-300">Nomor Peserta (Otomatis)</label>
+                            <input type="text" id="edit_nomor_peserta" class="cyber-input w-full opacity-50 cursor-not-allowed" disabled>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm mb-2 text-gray-300">Nama Lengkap (Sesuai KTP/Ijazah)</label>
+                            <input type="text" id="edit_nama_lengkap" name="nama_lengkap" class="cyber-input w-full" required>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm mb-2 text-gray-400">Instansi / Sekolah / Kampus</label>
+                            <input type="text" id="edit_instansi" name="instansi" class="cyber-input w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-2 text-gray-400">Nomor HP/WA</label>
+                            <input type="text" id="edit_no_hp" name="no_hp" class="cyber-input w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-2 text-gray-400">Kota / Kabupaten</label>
+                            <input type="text" id="edit_kota" name="kota" class="cyber-input w-full">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit" class="btn-primary px-8 py-3"><i class="fas fa-save mr-2"></i>Simpan Perubahan</button>
+                    </div>
+                    <div id="profileMessage" class="mt-4 text-center text-sm font-bold p-3 rounded hidden"></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- TAB: Ganti Password -->
+        <div id="profile-tab-password" class="profile-tab-content hidden">
+            <div class="card max-w-md">
+                <h4 class="text-base font-bold text-white mb-4"><i class="fas fa-key text-yellow-400 mr-2"></i>Ganti Password</h4>
+                <form id="passwordForm">
+                    <div class="mb-4">
+                        <label class="block text-sm mb-2 text-gray-400">Password Baru</label>
+                        <input type="password" id="new_password" name="new_password" autocomplete="new-password" class="cyber-input w-full" placeholder="Minimal 6 karakter">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm mb-2 text-gray-400">Konfirmasi Password Baru</label>
+                        <input type="password" id="confirm_password" autocomplete="new-password" class="cyber-input w-full" placeholder="Ulangi password baru">
+                    </div>
+                    <button type="submit" class="btn-primary w-full py-3"><i class="fas fa-lock mr-2"></i>Ganti Password</button>
+                    <div id="passwordMessage" class="mt-4 text-center text-sm font-bold p-3 rounded hidden"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
+
 
 <!-- Modal Belajar Materi -->
 <div id="belajarModal" class="modal">
@@ -381,6 +567,7 @@
         if (page === 'ujian') loadUjianPage();
         if (page === 'sertifikat') checkSertifikatEligibility();
         if (page === 'riwayat') loadSertifikatSaya();
+        if (page === 'pengaturan') loadProfileData();
     }
 
     document.querySelectorAll('.sidebar-item').forEach(item => {
@@ -849,6 +1036,178 @@
     document.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', () => btn.closest('.modal').classList.remove('active'));
     });
+
+    // ==================== PENGATURAN PROFIL ====================
+    // Tab switching
+    document.querySelectorAll('.profile-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.profile-tab-content').forEach(c => c.classList.add('hidden'));
+            btn.classList.add('active');
+            document.getElementById('profile-tab-' + btn.dataset.tab).classList.remove('hidden');
+        });
+    });
+
+    async function loadProfileData() {
+        try {
+            const token = localStorage.getItem('token');
+            const savedUsername = localStorage.getItem('username');
+            if (savedUsername) document.getElementById('edit_username').value = savedUsername;
+
+            const response = await fetch(`${API_URL}/user/profile`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const result = await response.json();
+                const user = result.data;
+
+                // Isi tab Lihat Profil
+                document.getElementById('view_nama').textContent = user.nama_lengkap || user.username || '-';
+                document.getElementById('view_nomor_peserta').textContent = 'Nomor Peserta: ' + (user.nomor_peserta || 'Belum Tersedia');
+                document.getElementById('view_username').textContent = user.username || '-';
+                document.getElementById('view_email').textContent = user.email || '-';
+                document.getElementById('view_no_hp').textContent = user.no_hp || '-';
+                document.getElementById('view_kota').textContent = user.kota || '-';
+                document.getElementById('view_instansi').textContent = user.instansi || '-';
+
+                // Avatar Lihat Profil
+                const viewImg = document.getElementById('viewAvatar');
+                const viewIcon = document.getElementById('viewAvatarIcon');
+                if (user.foto_profil && viewImg) {
+                    viewImg.src = 'http://localhost:5000' + user.foto_profil;
+                    viewImg.classList.remove('hidden');
+                    if (viewIcon) viewIcon.classList.add('hidden');
+                }
+
+                // Isi tab Edit Profil
+                document.getElementById('edit_username').value = user.username || savedUsername || '';
+                document.getElementById('edit_nomor_peserta').value = user.nomor_peserta || 'Belum Tersedia';
+                document.getElementById('edit_nama_lengkap').value = user.nama_lengkap || '';
+                document.getElementById('edit_no_hp').value = user.no_hp || '';
+                document.getElementById('edit_instansi').value = user.instansi || '';
+                document.getElementById('edit_kota').value = user.kota || '';
+
+                // Avatar Edit Profil
+                const img = document.getElementById('profilePreview');
+                const icon = document.getElementById('profileAvatarIcon');
+                if (user.foto_profil && img) {
+                    img.src = 'http://localhost:5000' + user.foto_profil;
+                    img.classList.remove('hidden');
+                    if (icon) icon.classList.add('hidden');
+                } else {
+                    if (img) img.classList.add('hidden');
+                    if (icon) icon.classList.remove('hidden');
+                }
+            } else {
+                const msgDiv = document.getElementById('profileMessage');
+                if (msgDiv) {
+                    msgDiv.classList.remove('hidden');
+                    msgDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500';
+                    msgDiv.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Gagal memuat profil. Pastikan server sudah berjalan.';
+                }
+            }
+        } catch (err) {
+            console.error('Error loading profile:', err);
+        }
+    }
+
+    function previewProfileImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('profilePreview');
+                const icon = document.getElementById('profileAvatarIcon');
+                if (img) { img.src = e.target.result; img.classList.remove('hidden'); }
+                if (icon) icon.classList.add('hidden');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Profile Edit form
+    const profileForm = document.getElementById('profileForm');
+    if (profileForm) {
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const messageDiv = document.getElementById('profileMessage');
+            messageDiv.classList.remove('hidden');
+            messageDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-yellow-900/50 text-yellow-400 border border-yellow-500';
+            messageDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...';
+
+            const formData = new FormData(profileForm);
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/user/profile`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    messageDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-green-900/50 text-green-400 border border-green-500';
+                    messageDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i> ' + result.message;
+                    await loadProfileData();
+                } else {
+                    messageDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500';
+                    messageDiv.innerHTML = '<i class="fas fa-times-circle mr-2"></i> ' + result.message;
+                }
+            } catch (err) {
+                messageDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500';
+                messageDiv.innerHTML = '<i class="fas fa-wifi mr-2"></i> Gagal terhubung ke server';
+            }
+        });
+    }
+
+    // Password form (tab terpisah)
+    const passwordForm = document.getElementById('passwordForm');
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msgDiv = document.getElementById('passwordMessage');
+            msgDiv.classList.remove('hidden');
+            const newPass = document.getElementById('new_password').value;
+            const confirmPass = document.getElementById('confirm_password').value;
+
+            if (newPass.length < 6) {
+                msgDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500';
+                msgDiv.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Password minimal 6 karakter!';
+                return;
+            }
+            if (newPass !== confirmPass) {
+                msgDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500';
+                msgDiv.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Konfirmasi password tidak cocok!';
+                return;
+            }
+            msgDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-yellow-900/50 text-yellow-400 border border-yellow-500';
+            msgDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...';
+            try {
+                const token = localStorage.getItem('token');
+                const formData = new FormData();
+                formData.append('new_password', newPass);
+                // Keep existing username/nama so they don't get wiped
+                formData.append('username', document.getElementById('edit_username').value || '');
+                formData.append('nama_lengkap', document.getElementById('edit_nama_lengkap').value || '');
+                const response = await fetch(`${API_URL}/user/profile`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    msgDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-green-900/50 text-green-400 border border-green-500';
+                    msgDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Password berhasil diubah!';
+                    document.getElementById('new_password').value = '';
+                    document.getElementById('confirm_password').value = '';
+                } else {
+                    msgDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500';
+                    msgDiv.innerHTML = '<i class="fas fa-times-circle mr-2"></i> ' + result.message;
+                }
+            } catch (err) {
+                msgDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500';
+                msgDiv.innerHTML = '<i class="fas fa-wifi mr-2"></i> Gagal terhubung ke server';
+            }
+        });
+    }
 
     // Initialize
     loadPage('dashboard');

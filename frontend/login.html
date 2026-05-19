@@ -12,22 +12,17 @@
 <body class="bg-dark-bg min-h-screen flex items-center justify-center">
     <div class="cyber-card p-8 w-full max-w-md mx-4">
         <div class="text-center mb-6">
-            <i class="fas fa-quran text-4xl text-neon-gold mb-3"></i>
+            <img src="img/logo.jpeg" alt="Logo Al-Firqoh" class="mx-auto h-16 w-16 mb-3 rounded-full border-2 border-neon-gold shadow-[0_0_15px_rgba(255,215,0,0.5)]">
             <h2 class="cyber-header text-2xl">LOGIN</h2>
             <p class="text-gray-400 text-sm mt-2">Masuk ke akun Anda</p>
         </div>
         
         <form id="loginForm">
+            <!-- Role dikunci sebagai User -->
+            <input type="hidden" id="role" value="user">
             <div class="mb-4">
-                <label class="block text-sm mb-2">Login Sebagai</label>
-                <select id="role" class="cyber-select w-full" required>
-                    <option value="user">Siswa / User</option>
-                    <option value="admin">Admin</option>
-                </select>
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm mb-2">Email</label>
-                <input type="email" id="email" class="cyber-input w-full" required>
+                <label class="block text-sm mb-2">Username</label>
+                <input type="text" id="username" class="cyber-input w-full" required>
             </div>
             <div class="mb-6">
                 <label class="block text-sm mb-2">Password</label>
@@ -41,6 +36,13 @@
         <p class="text-center text-sm text-gray-400 mt-4">
             Belum punya akun? <a href="register.html" class="text-neon-green hover:underline">Daftar disini</a>
         </p>
+        
+        <div class="mt-6 pt-6 border-t border-gray-700 text-center">
+            <p class="text-xs text-gray-500 mb-2">PENGELOLA SISTEM</p>
+            <a href="admin-login.html" class="text-sm text-neon-gold hover:text-white transition-colors duration-300">
+                <i class="fas fa-shield-alt mr-1"></i> Area Administrator
+            </a>
+        </div>
     </div>
 
     <script>
@@ -50,7 +52,7 @@
             e.preventDefault();
             
             const role = document.getElementById('role').value;
-            const email = document.getElementById('email').value;
+            const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const messageDiv = document.getElementById('message');
             
@@ -60,7 +62,7 @@
                 const response = await fetch(`${API_URL}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, role })
+                    body: JSON.stringify({ username, password, role })
                 });
                 
                 const result = await response.json();

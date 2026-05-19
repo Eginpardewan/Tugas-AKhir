@@ -9,10 +9,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #e2e8f0; }
+        body { font-family: 'Inter', sans-serif; background: #111827; color: #e2e8f0; animation: fadeIn 0.4s ease-in-out; }
         
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .page-content { animation: fadeIn 0.4s ease-in-out; }
+
         .navbar {
-            background: #0f0f1a;
+            background: #1f2937;
             border-bottom: 1px solid #2E7D32;
             position: fixed;
             top: 0;
@@ -28,7 +34,7 @@
             top: 60px;
             width: 260px;
             height: calc(100vh - 60px);
-            background: #111827;
+            background: #1f2937;
             border-right: 1px solid #2E7D32;
             overflow-y: auto;
             z-index: 90;
@@ -53,7 +59,7 @@
         .sidebar-item.active { background: rgba(46, 125, 50, 0.3); border-left-color: #2E7D32; color: #4caf50; }
         .sidebar-category { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; padding: 16px 20px 8px; font-weight: 600; }
         
-        .card { background: #1a1a2e; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #2E7D32; }
+        .card { background: #1f2937; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #2E7D32; }
         
         .btn-primary { background: #2E7D32; color: white; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; }
         .btn-primary:hover { background: #1B5E20; }
@@ -62,6 +68,8 @@
         .btn-warning:hover { background: #d97706; }
         .btn-danger { background: #ef4444; color: white; padding: 4px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; }
         .btn-danger:hover { background: #dc2626; }
+        .btn-info { background: #3b82f6; color: white; padding: 4px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; }
+        .btn-info:hover { background: #2563eb; }
         
         .table { width: 100%; border-collapse: collapse; }
         .table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -82,7 +90,7 @@
         }
         .modal.active { display: flex; }
         .modal-content {
-            background: #1a1a2e;
+            background: #1f2937;
             border-radius: 16px;
             padding: 24px;
             width: 90%;
@@ -98,7 +106,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #1a1a2e; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
         ::-webkit-scrollbar-thumb { background: #2E7D32; border-radius: 4px; }
         
         @media (max-width: 768px) {
@@ -120,7 +128,7 @@
             <button class="menu-btn bg-transparent border-none text-white text-2xl cursor-pointer hidden" id="menuToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <i class="fas fa-quran text-2xl text-green-600"></i>
+            <img src="img/logo.jpeg" alt="Logo Al-Firqoh" class="h-8 w-8 rounded-full border border-green-600">
             <span class="text-xl font-bold">Tajwid Admin</span>
         </div>
         <div class="flex items-center gap-4">
@@ -308,6 +316,9 @@
         </div>
         <form id="materiForm" enctype="multipart/form-data">
             <input type="hidden" id="materiId">
+            <input type="hidden" id="remove_video" value="false">
+            <input type="hidden" id="remove_audio" value="false">
+            <input type="hidden" id="remove_gambar" value="false">
             <div class="mb-3"><label class="block text-sm mb-1">Pilih Bab</label><select id="materiBabId" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></select></div>
             <div class="mb-3"><label class="block text-sm mb-1">Judul Materi</label><input type="text" id="materiJudul" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></div>
             <div class="mb-3"><label class="block text-sm mb-1">Deskripsi</label><input type="text" id="materiDeskripsi" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></div>
@@ -315,8 +326,7 @@
             <div class="mb-3"><label class="block text-sm mb-1">Upload Video (MP4)</label><input type="file" id="materiVideo" accept="video/mp4,video/webm" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></div>
             <div class="mb-3"><label class="block text-sm mb-1">Upload Audio (MP3)</label><input type="file" id="materiAudio" accept="audio/mpeg" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></div>
             <div class="mb-3"><label class="block text-sm mb-1">Upload Gambar</label><input type="file" id="materiGambar" accept="image/*" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></div>
-            <div class="mb-3"><label class="block text-sm mb-1">Upload PDF</label><input type="file" id="materiPdf" accept="application/pdf" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></div>
-            <div class="mb-4"><label class="block text-sm mb-1">Urutan</label><input type="number" id="materiUrutan" class="w-full p-2 rounded bg-black/50 border border-green-500/30" value="0"></div>
+            <div class="mb-4"><label class="block text-sm mb-1">Urutan</label><input type="number" id="materiUrutan" class="w-full p-2 rounded bg-black/50 border border-green-500/30" value="1" min="1"></div>
             <div id="existingFiles" class="file-info"></div>
             <div class="flex gap-3"><button type="submit" class="btn-primary flex-1">Simpan</button><button type="button" onclick="closeMateriModal()" class="btn-outline flex-1">Batal</button></div>
         </form>
@@ -357,6 +367,31 @@
             <div class="mb-4"><label class="block text-sm mb-1">Poin</label><input type="number" id="soalSertifikatPoin" class="w-full p-2 rounded bg-black/50 border border-green-500/30" value="10"></div>
             <div class="flex gap-3"><button type="submit" class="btn-primary flex-1">Simpan</button><button type="button" onclick="closeSoalSertifikatModal()" class="btn-outline flex-1">Batal</button></div>
         </form>
+    </div>
+</div>
+
+<!-- Modal Lihat Materi -->
+<div id="viewMateriModal" class="modal">
+    <div class="modal-content max-w-4xl">
+        <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-3">
+            <h3 id="viewMateriTitle" class="text-2xl font-bold text-green-500"></h3>
+            <button onclick="closeViewMateriModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        </div>
+        <div class="mb-4">
+            <span id="viewMateriBab" class="badge badge-success mr-2"></span>
+            <span id="viewMateriUrutan" class="badge badge-info mr-2"></span>
+        </div>
+        <p id="viewMateriDeskripsi" class="text-gray-400 italic mb-6"></p>
+        
+        <div id="viewMateriMedia" class="mb-6 space-y-4"></div>
+        
+        <div class="bg-black/50 p-6 rounded-lg border border-green-500/30">
+            <div id="viewMateriKonten" class="whitespace-pre-wrap leading-relaxed"></div>
+        </div>
+        
+        <div class="mt-6 flex justify-end">
+            <button onclick="closeViewMateriModal()" class="btn-outline">Tutup</button>
+        </div>
     </div>
 </div>
 
@@ -616,6 +651,7 @@
                                 </div>
                             </div>
                             <div class="flex gap-2">
+                                <button onclick="viewMateri(${m.id})" class="btn-info">Lihat</button>
                                 <button onclick="editMateri(${m.id})" class="btn-warning">Edit</button>
                                 <button onclick="deleteMateri(${m.id})" class="btn-danger">Hapus</button>
                             </div>
@@ -639,14 +675,13 @@
                     document.getElementById('materiJudul').value = materi.judul;
                     document.getElementById('materiDeskripsi').value = materi.deskripsi || '';
                     document.getElementById('materiKonten').value = materi.konten;
-                    document.getElementById('materiUrutan').value = materi.urutan || 0;
+                    document.getElementById('materiUrutan').value = materi.urutan || 1;
                     let fileHtml = '';
-                    if (materi.file_video) fileHtml += `<p>🎥 Video: ${materi.file_video.split('/').pop()}</p>`;
-                    if (materi.file_audio) fileHtml += `<p>🎵 Audio: ${materi.file_audio.split('/').pop()}</p>`;
-                    if (materi.file_gambar) fileHtml += `<p>🖼️ Gambar: ${materi.file_gambar.split('/').pop()}</p>`;
-                    if (materi.file_pdf) fileHtml += `<p>📄 PDF: ${materi.file_pdf.split('/').pop()}</p>`;
-                    if (fileHtml) { fileHtml = `<div class="text-xs"><p class="text-yellow-500 mb-1">📁 File yang sudah ada:</p>${fileHtml}<p class="text-yellow-500 mt-1">⚠️ Upload file baru akan mengganti file lama</p></div>`;
-                    }
+                    if (materi.file_video) fileHtml += `<div id="existVideoWrap" class="flex justify-between items-center mb-1"><p>🎥 Video: ${materi.file_video.split('/').pop()}</p><button type="button" onclick="removeExistingFile('video')" class="btn-danger text-[10px] px-2 py-1">Hapus</button></div>`;
+                    if (materi.file_audio) fileHtml += `<div id="existAudioWrap" class="flex justify-between items-center mb-1"><p>🎵 Audio: ${materi.file_audio.split('/').pop()}</p><button type="button" onclick="removeExistingFile('audio')" class="btn-danger text-[10px] px-2 py-1">Hapus</button></div>`;
+                    if (materi.file_gambar) fileHtml += `<div id="existGambarWrap" class="flex justify-between items-center mb-1"><p>🖼️ Gambar: ${materi.file_gambar.split('/').pop()}</p><button type="button" onclick="removeExistingFile('gambar')" class="btn-danger text-[10px] px-2 py-1">Hapus</button></div>`;
+                    if (materi.file_pdf) fileHtml += `<div id="existPdfWrap" class="flex justify-between items-center mb-1"><p>📄 PDF: ${materi.file_pdf.split('/').pop()}</p></div>`;
+                    if (fileHtml) { fileHtml = `<div class="text-xs bg-black/30 p-3 rounded mb-3"><p class="text-yellow-500 mb-2 font-bold">📁 File yang sudah ada:</p>${fileHtml}<p class="text-yellow-500 mt-2 italic">⚠️ Upload file baru otomatis mengganti file lama</p></div>`; }
                     document.getElementById('existingFiles').innerHTML = fileHtml;
                     document.getElementById('materiModalTitle').innerText = 'Edit Materi';
                     openMateriModal();
@@ -660,8 +695,17 @@
         document.getElementById('materiModal').classList.remove('active'); 
         document.getElementById('materiForm').reset(); 
         document.getElementById('materiId').value = '';
+        document.getElementById('remove_video').value = 'false';
+        document.getElementById('remove_audio').value = 'false';
+        document.getElementById('remove_gambar').value = 'false';
         document.getElementById('existingFiles').innerHTML = '';
         document.getElementById('materiModalTitle').innerText = 'Tambah Materi';
+    }
+
+    function removeExistingFile(type) {
+        if (!confirm(`Yakin ingin menghapus ${type} ini? (Akan terhapus saat Anda klik Simpan)`)) return;
+        document.getElementById(`remove_${type}`).value = 'true';
+        document.getElementById(`exist${type.charAt(0).toUpperCase() + type.slice(1)}Wrap`).style.display = 'none';
     }
 
     document.getElementById('materiForm').addEventListener('submit', async (e) => {
@@ -679,7 +723,9 @@
         if (document.getElementById('materiVideo').files[0]) formData.append('video', document.getElementById('materiVideo').files[0]);
         if (document.getElementById('materiAudio').files[0]) formData.append('audio', document.getElementById('materiAudio').files[0]);
         if (document.getElementById('materiGambar').files[0]) formData.append('gambar', document.getElementById('materiGambar').files[0]);
-        if (document.getElementById('materiPdf').files[0]) formData.append('pdf', document.getElementById('materiPdf').files[0]);
+        formData.append('remove_video', document.getElementById('remove_video').value);
+        formData.append('remove_audio', document.getElementById('remove_audio').value);
+        formData.append('remove_gambar', document.getElementById('remove_gambar').value);
         const url = materiId ? `${API_URL}/admin/materi/${materiId}` : `${API_URL}/admin/materi`;
         const method = materiId ? 'PUT' : 'POST';
         showLoading(true);
@@ -706,6 +752,44 @@
             if (res.ok) { alert('Materi berhasil dihapus'); await loadMateriByBab(); await loadDashboard(); }
             else alert('Gagal menghapus materi');
         } catch(e) { showLoading(false); alert('Error: ' + e.message); }
+    }
+    // ==================== VIEW MATERI ====================
+    async function viewMateri(id) {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/materis`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success) {
+                const materi = data.data.find(m => m.id === id);
+                if (materi) {
+                    document.getElementById('viewMateriTitle').innerText = materi.judul;
+                    document.getElementById('viewMateriBab').innerText = `Bab: ${materi.bab_nama || materi.bab_id}`;
+                    document.getElementById('viewMateriUrutan').innerText = `Urutan: ${materi.urutan || 0}`;
+                    document.getElementById('viewMateriDeskripsi').innerText = materi.deskripsi || '';
+                    document.getElementById('viewMateriKonten').innerText = materi.konten;
+                    
+                    let mediaHtml = '';
+                    if (materi.file_video) mediaHtml += `<div class="mb-4"><h4 class="text-sm text-gray-400 mb-2">Video Materi:</h4><video controls class="w-full max-w-2xl rounded-lg border border-gray-700" src="http://localhost:5000${materi.file_video}"></video></div>`;
+                    if (materi.file_audio) mediaHtml += `<div class="mb-4"><h4 class="text-sm text-gray-400 mb-2">Audio Materi:</h4><audio controls class="w-full" src="http://localhost:5000${materi.file_audio}"></audio></div>`;
+                    if (materi.file_gambar) mediaHtml += `<div class="mb-4"><h4 class="text-sm text-gray-400 mb-2">Gambar Materi:</h4><img class="max-w-xl rounded-lg border border-gray-700" src="http://localhost:5000${materi.file_gambar}" alt="Materi"></div>`;
+                    if (materi.file_pdf) mediaHtml += `<div class="mb-4"><a href="http://localhost:5000${materi.file_pdf}" target="_blank" class="btn-primary inline-block text-sm"><i class="fas fa-file-pdf mr-2"></i> Buka PDF Materi</a></div>`;
+                    
+                    document.getElementById('viewMateriMedia').innerHTML = mediaHtml;
+                    
+                    document.getElementById('viewMateriModal').classList.add('active');
+                }
+            }
+        } catch(e) { alert('Gagal memuat detail materi'); }
+    }
+
+    function closeViewMateriModal() {
+        document.getElementById('viewMateriModal').classList.remove('active');
+        const mediaDiv = document.getElementById('viewMateriMedia');
+        const videos = mediaDiv.querySelectorAll('video');
+        const audios = mediaDiv.querySelectorAll('audio');
+        videos.forEach(v => v.pause());
+        audios.forEach(a => a.pause());
+        mediaDiv.innerHTML = '';
     }
 
     // ==================== SOAL BAB (Dengan Edit) ====================

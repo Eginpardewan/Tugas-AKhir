@@ -38,6 +38,19 @@ db.connect((err) => {
         process.exit(1);
     }
     console.log('✅ Terhubung ke MySQL Database');
+    
+    // Auto-update database: add wallet_address to admins table if not exists
+    db.query("ALTER TABLE admins ADD COLUMN wallet_address VARCHAR(255) UNIQUE", (err) => {
+        if (err) {
+            if (err.code === 'ER_DUP_FIELDNAME') {
+                console.log("ℹ️ Kolom wallet_address sudah ada di tabel admins.");
+            } else {
+                console.error("⚠️ Gagal menambahkan kolom wallet_address:", err.message);
+            }
+        } else {
+            console.log("✅ Berhasil menambahkan kolom wallet_address ke tabel admins.");
+        }
+    });
 });
 
 // Helper query promise

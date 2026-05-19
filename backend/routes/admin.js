@@ -186,7 +186,8 @@ module.exports = (db, dbQuery) => {
         { name: 'gambar', maxCount: 1 },
         { name: 'pdf', maxCount: 1 }
     ]), async (req, res) => {
-        const { judul, deskripsi, konten, urutan } = req.body;
+        console.log('PUT /materi/:id received body:', req.body);
+        const { judul, deskripsi, konten, urutan, remove_video, remove_audio, remove_gambar } = req.body;
         const files = req.files;
         const materiId = req.params.id;
         
@@ -201,30 +202,47 @@ module.exports = (db, dbQuery) => {
             let fileGambar = oldMateri[0].file_gambar;
             let filePdf = oldMateri[0].file_pdf;
             
+            // Handle removal flags
+            if (remove_video === 'true' && fileVideo) {
+                const oldPath = path.join(__dirname, '..', fileVideo);
+                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+                fileVideo = null;
+            }
+            if (remove_audio === 'true' && fileAudio) {
+                const oldPath = path.join(__dirname, '..', fileAudio);
+                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+                fileAudio = null;
+            }
+            if (remove_gambar === 'true' && fileGambar) {
+                const oldPath = path.join(__dirname, '..', fileGambar);
+                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+                fileGambar = null;
+            }
+
             if (files?.video?.[0]?.filename) {
                 fileVideo = `/uploads/videos/${files.video[0].filename}`;
-                if (oldMateri[0].file_video) {
+                if (oldMateri[0].file_video && oldMateri[0].file_video !== fileVideo) {
                     const oldPath = path.join(__dirname, '..', oldMateri[0].file_video);
                     if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
                 }
             }
             if (files?.audio?.[0]?.filename) {
                 fileAudio = `/uploads/audios/${files.audio[0].filename}`;
-                if (oldMateri[0].file_audio) {
+                if (oldMateri[0].file_audio && oldMateri[0].file_audio !== fileAudio) {
                     const oldPath = path.join(__dirname, '..', oldMateri[0].file_audio);
                     if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
                 }
             }
             if (files?.gambar?.[0]?.filename) {
                 fileGambar = `/uploads/images/${files.gambar[0].filename}`;
-                if (oldMateri[0].file_gambar) {
+                if (oldMateri[0].file_gambar && oldMateri[0].file_gambar !== fileGambar) {
                     const oldPath = path.join(__dirname, '..', oldMateri[0].file_gambar);
                     if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
                 }
             }
             if (files?.pdf?.[0]?.filename) {
                 filePdf = `/uploads/docs/${files.pdf[0].filename}`;
-                if (oldMateri[0].file_pdf) {
+                if (oldMateri[0].file_pdf && oldMateri[0].file_pdf !== filePdf) {
                     const oldPath = path.join(__dirname, '..', oldMateri[0].file_pdf);
                     if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
                 }
@@ -234,7 +252,7 @@ module.exports = (db, dbQuery) => {
                 `UPDATE materis SET 
                     judul = ?, deskripsi = ?, konten = ?, 
                     file_video = ?, file_audio = ?, file_gambar = ?, file_pdf = ?, 
-                    urutan = ?, updated_at = NOW() 
+                    urutan = ? 
                  WHERE id = ?`,
                 [judul, deskripsi, konten, fileVideo, fileAudio, fileGambar, filePdf, urutan || 0, materiId]
             );
@@ -375,8 +393,33 @@ module.exports = (db, dbQuery) => {
     // ==================== USER ====================
     router.get('/users', verifyAdmin, async (req, res) => {
         try {
-            const users = await dbQuery('SELECT id, username, email, created_at FROM users ORDER BY created_at DESC');
+            const users = await dbQuery(`
+                SELECT id, username, email, nama_lengkap, no_hp, instansi, kota, 
+                       foto_profil, nomor_peserta, created_at
+                FROM users ORDER BY created_at DESC
+            `);
             res.json({ success: true, data: users });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+
+    router.get('/users/:id', verifyAdmin, async (req, res) => {
+        try {
+            const users = await dbQuery(`
+                SELECT u.id, u.username, u.email, u.nama_lengkap, u.no_hp, 
+                       u.instansi, u.kota, u.foto_profil, u.nomor_peserta, u.created_at,
+                       COUNT(DISTINCT nb.bab_id) as bab_lulus,
+                       (SELECT persentase FROM hasil_sertifikat WHERE user_id = u.id AND is_lulus = 1 ORDER BY completed_at DESC LIMIT 1) as nilai_sertifikat,
+                       (SELECT completed_at FROM hasil_sertifikat WHERE user_id = u.id AND is_lulus = 1 ORDER BY completed_at DESC LIMIT 1) as tanggal_lulus,
+                       (SELECT COUNT(*) FROM certificates WHERE user_id = u.id) as total_sertifikat
+                FROM users u
+                LEFT JOIN nilai_bab nb ON nb.user_id = u.id AND nb.is_lulus = 1
+                WHERE u.id = ?
+                GROUP BY u.id
+            `, [req.params.id]);
+            if (users.length === 0) return res.status(404).json({ success: false, message: 'User tidak ditemukan' });
+            res.json({ success: true, data: users[0] });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });
         }

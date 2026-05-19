@@ -14,6 +14,7 @@ async function initUser() {
     
     // Load user data
     await loadUserData();
+    await loadProfileData(); // Load profile settings
     await loadMateri();
     await loadBabList();
     await loadProgress();
@@ -465,20 +466,102 @@ function renderCertificates(certificates) {
     }
     
     container.innerHTML = certificates.map(cert => `
-        <div class="certificate-card">
-            <i class="fas fa-certificate text-4xl text-neon-gold mb-3"></i>
-            <h4 class="text-xl font-bold">Sertifikat Tajwid</h4>
-            <p class="text-sm mt-2">Nilai: ${cert.nilai}%</p>
-            <p class="text-xs text-gray-400">Tanggal: ${new Date(cert.createdAt).toLocaleDateString()}</p>
-            ${cert.transactionHash ? `
-                <a href="https://sepolia.etherscan.io/tx/${cert.transactionHash}" target="_blank" 
-                   class="inline-block mt-3 text-neon-blue text-sm hover:underline">
-                    <i class="fas fa-link"></i> Lihat di Blockchain
-                </a>
-            ` : ''}
+        <div class="certificate-card bg-black/40 border border-neon-gold/30 p-6 rounded-lg relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-neon-gold/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+            
+            <div class="text-center mb-6">
+                <i class="fas fa-certificate text-5xl text-neon-gold mb-3 drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]"></i>
+                <h4 class="text-2xl font-bold font-orbitron text-white tracking-widest uppercase">Sertifikat Kelulusan</h4>
+                <p class="text-xs text-neon-gold tracking-widest mt-1">TAJWID LEARNING - AL FIRQOH AN-NAJIYAH</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-b border-gray-700/50 py-4 my-4">
+                <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Nama Lengkap</p>
+                    <p class="font-bold text-lg text-white">${cert.nama_lengkap || 'Tidak Diketahui'}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Nomor Peserta</p>
+                    <p class="font-bold text-neon-gold">${cert.nomor_peserta || 'Masa Tunggu'}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Nilai Ujian</p>
+                    <p class="font-bold text-neon-green text-lg">${cert.nilai ? cert.nilai + '%' : '-'}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Tanggal Kelulusan</p>
+                    <p class="font-bold text-white">${new Date(cert.issued_at || cert.createdAt).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
+                </div>
+            </div>
+            
+            <div class="text-center mt-6">
+                ${cert.transactionHash ? `
+                    <div class="inline-flex flex-col items-center gap-2">
+                        <span class="px-3 py-1 bg-green-900/30 text-green-400 border border-green-500 rounded-full text-xs font-bold tracking-wider">TERVERIFIKASI BLOCKCHAIN</span>
+                        <a href="https://sepolia.etherscan.io/tx/${cert.transactionHash}" target="_blank" 
+                           class="text-neon-blue text-sm hover:underline flex items-center gap-2 transition-all hover:drop-shadow-[0_0_8px_rgba(0,195,255,0.8)]">
+                            <i class="fas fa-link"></i> Lihat Transaksi
+                        </a>
+                    </div>
+                ` : '<span class="px-3 py-1 bg-yellow-900/30 text-yellow-400 border border-yellow-500 rounded-full text-xs">PENDING PEMBAYARAN</span>'}
+            </div>
         </div>
     `).join("");
 }
+
+// Load Profile Data
+async function loadProfileData() {
+    try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:5000/api/user/profile", {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            const user = result.data;
+            
+            document.getElementById("edit_username").value = user.username;
+            document.getElementById("edit_nomor_peserta").value = user.nomor_peserta || "Belum Tersedia";
+            document.getElementById("edit_nama_lengkap").value = user.nama_lengkap || "";
+            document.getElementById("edit_no_hp").value = user.no_hp || "";
+            document.getElementById("edit_instansi").value = user.instansi || "";
+            document.getElementById("edit_kota").value = user.kota || "";
+            
+            // Tampilkan foto profil jika ada
+            const img = document.getElementById("profilePreview");
+            const icon = document.getElementById("profileAvatarIcon");
+            if (user.foto_profil && img) {
+                img.src = 'http://localhost:5000' + user.foto_profil;
+                img.classList.remove('hidden');
+                if (icon) icon.classList.add('hidden');
+            } else {
+                if (img) img.classList.add('hidden');
+                if (icon) icon.classList.remove('hidden');
+            }
+        }
+    } catch (error) {
+        console.error("Error loading profile:", error);
+    }
+}
+
+// Preview Profile Image (tampilkan preview saat memilih file)
+function previewProfileImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById('profilePreview');
+            const icon = document.getElementById('profileAvatarIcon');
+            if (img) {
+                img.src = e.target.result;
+                img.classList.remove('hidden');
+            }
+            if (icon) icon.classList.add('hidden');
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+window.previewProfileImage = previewProfileImage;
 
 // Setup event listeners
 function setupUserListeners() {
@@ -505,6 +588,43 @@ function setupUserListeners() {
     const uploadPaymentBtn = document.getElementById("uploadPaymentBtn");
     if (uploadPaymentBtn) {
         uploadPaymentBtn.addEventListener("click", uploadPayment);
+    }
+
+    // Handle Profile Update
+    const profileForm = document.getElementById("profileForm");
+    if (profileForm) {
+        profileForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const messageDiv = document.getElementById("profileMessage");
+            messageDiv.classList.remove("hidden");
+            messageDiv.className = "mt-4 text-center text-sm font-bold p-3 rounded bg-yellow-900/50 text-yellow-400 border border-yellow-500";
+            messageDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...';
+            
+            const formData = new FormData(profileForm);
+            
+            try {
+                const token = localStorage.getItem("token");
+                const response = await fetch("http://localhost:5000/api/user/profile", {
+                    method: 'PUT',
+                    headers: { "Authorization": `Bearer ${token}` },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    messageDiv.className = "mt-4 text-center text-sm font-bold p-3 rounded bg-green-900/50 text-green-400 border border-green-500";
+                    messageDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i> ' + result.message;
+                    await loadProfileData(); // Reload preview
+                } else {
+                    messageDiv.className = "mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500";
+                    messageDiv.innerHTML = '<i class="fas fa-times-circle mr-2"></i> ' + result.message;
+                }
+            } catch (error) {
+                messageDiv.className = "mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500";
+                messageDiv.innerHTML = '<i class="fas fa-wifi mr-2"></i> Gagal terhubung ke server';
+            }
+        });
     }
 }
 

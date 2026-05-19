@@ -1,5 +1,21 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadPath = path.join(__dirname, '../uploads/images');
+        if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
+        cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 // Auto-grade function
 function autoGradeEssay(jawabanUser, jawabanBenar, kataKunci = '', poinMaksimal = 10) {
@@ -444,14 +460,70 @@ module.exports = (db, dbQuery) => {
     router.get('/my-certificates', verifyUser, async (req, res) => {
         try {
             const certificates = await dbQuery(
-                `SELECT c.*, p.amount, p.status as payment_status 
+                `SELECT c.*, p.amount, p.status as payment_status,
+                        u.nama_lengkap, u.nomor_peserta, h.persentase as nilai
                  FROM certificates c 
                  JOIN payments p ON c.payment_id = p.id 
+                 JOIN users u ON c.user_id = u.id
+                 LEFT JOIN hasil_sertifikat h ON h.user_id = c.user_id AND h.is_lulus = 1
                  WHERE c.user_id = ? 
                  ORDER BY c.issued_at DESC`,
                 [req.userId]
             );
             res.json({ success: true, data: certificates });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    // ==================== PROFIL USER ====================
+    router.get('/profile', verifyUser, async (req, res) => {
+        try {
+            const users = await dbQuery(
+                'SELECT id, username, email, nama_lengkap, no_hp, instansi, kota, foto_profil, nomor_peserta FROM users WHERE id = ?',
+                [req.userId]
+            );
+            if (users.length === 0) return res.status(404).json({ success: false, message: 'User tidak ditemukan' });
+            res.json({ success: true, data: users[0] });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+
+    router.put('/profile', verifyUser, upload.single('foto_profil'), async (req, res) => {
+        const { nama_lengkap, no_hp, instansi, kota, username, new_password } = req.body;
+        
+        try {
+            // Cek apakah username baru sudah dipakai user lain
+            if (username) {
+                const existingUser = await dbQuery(
+                    'SELECT id FROM users WHERE username = ? AND id != ?',
+                    [username, req.userId]
+                );
+                if (existingUser.length > 0) {
+                    return res.status(400).json({ success: false, message: 'Username sudah digunakan oleh akun lain!' });
+                }
+            }
+
+            let updateQuery = 'UPDATE users SET nama_lengkap = ?, no_hp = ?, instansi = ?, kota = ?, username = ?';
+            let params = [nama_lengkap || '', no_hp || null, instansi || null, kota || null, username || null];
+
+            // Ganti password jika diisi
+            if (new_password && new_password.trim().length >= 6) {
+                updateQuery += ', password = ?';
+                params.push(new_password.trim());
+            }
+
+            if (req.file) {
+                updateQuery += ', foto_profil = ?';
+                params.push(`/uploads/images/${req.file.filename}`);
+            }
+
+            updateQuery += ' WHERE id = ?';
+            params.push(req.userId);
+
+            await dbQuery(updateQuery, params);
+            res.json({ success: true, message: 'Profil berhasil diperbarui!' });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });
         }
