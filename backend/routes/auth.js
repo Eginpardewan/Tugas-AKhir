@@ -21,15 +21,7 @@ module.exports = (db, dbQuery) => {
     
     // REGISTER
     router.post('/register', upload.single('foto_profil'), async (req, res) => {
-        const { username, email, password, nama_lengkap, no_hp, instansi, kota } = req.body;
-        
-        // Generate nomor peserta: TL-{YYYYMMDD}-{4 Random Digits}
-        const dateObj = new Date();
-        const year = dateObj.getFullYear().toString();
-        const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-        const day = dateObj.getDate().toString().padStart(2, '0');
-        const randomDigits = Math.floor(1000 + Math.random() * 9000);
-        const nomor_peserta = `TL-${year}${month}${day}-${randomDigits}`;
+        const { username, email, password, nama_lengkap, jenis_kelamin, no_hp, instansi, kota } = req.body;
 
         let foto_profil = null;
         if (req.file) {
@@ -37,9 +29,18 @@ module.exports = (db, dbQuery) => {
         }
         
         try {
+            // Generate nomor peserta: TL-{YYYYMMDD}-{Nomor Urut 4 digit, mulai dari 0001}
+            const countResult = await dbQuery('SELECT COUNT(*) as total FROM users');
+            const urutan = (countResult[0].total + 1).toString().padStart(4, '0');
+            const dateObj = new Date();
+            const year = dateObj.getFullYear().toString();
+            const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+            const day = dateObj.getDate().toString().padStart(2, '0');
+            const nomor_peserta = `TL-${year}${month}${day}-${urutan}`;
+
             await dbQuery(
-                'INSERT INTO users (username, email, password, nama_lengkap, no_hp, instansi, kota, foto_profil, nomor_peserta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [username, email, password, nama_lengkap || '', no_hp || null, instansi || null, kota || null, foto_profil, nomor_peserta]
+                'INSERT INTO users (username, email, password, nama_lengkap, jenis_kelamin, no_hp, instansi, kota, foto_profil, nomor_peserta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [username, email, password, nama_lengkap || '', jenis_kelamin || null, no_hp || null, instansi || null, kota || null, foto_profil, nomor_peserta]
             );
             res.json({ success: true, message: 'Registrasi berhasil!' });
         } catch (err) {

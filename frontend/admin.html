@@ -261,12 +261,11 @@
         <div id="soalSertifikatList" class="space-y-4"></div>
     </div>
 
-    <!-- Kelola User -->
     <div id="page-users" class="page-content hidden">
         <h2 class="text-2xl font-bold mb-4">👥 Kelola User</h2>
         <div class="card overflow-x-auto">
             <table class="table">
-                <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Terdaftar</th></tr></thead>
+                <thead><tr><th>ID</th><th>Username</th><th>Nama Lengkap</th><th>Jenis Kelamin</th><th>Email</th><th>Terdaftar</th><th>Aksi</th></tr></thead>
                 <tbody id="usersTableBody"></tbody>
             </table>
         </div>
@@ -391,6 +390,80 @@
         
         <div class="mt-6 flex justify-end">
             <button onclick="closeViewMateriModal()" class="btn-outline">Tutup</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detail User -->
+<div id="userDetailModal" class="modal">
+    <div class="modal-content max-w-lg">
+        <div class="flex justify-between items-center mb-5 border-b border-gray-700 pb-3">
+            <h3 class="text-xl font-bold text-green-400"><i class="fas fa-user-circle mr-2"></i>Detail Biodata User</h3>
+            <button onclick="closeUserDetailModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        </div>
+        <!-- Foto & Nama -->
+        <div class="flex items-center gap-4 mb-5">
+            <div class="w-20 h-20 rounded-full border-2 border-green-500 bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                <i id="udAvatarIcon" class="fas fa-user-circle text-4xl text-gray-500"></i>
+                <img id="udAvatar" src="" alt="Foto" class="w-full h-full object-cover hidden">
+            </div>
+            <div>
+                <h4 id="ud_nama" class="text-xl font-bold text-white">-</h4>
+                <p id="ud_nomor_peserta" class="text-yellow-400 font-mono text-xs mt-1">-</p>
+            </div>
+        </div>
+        <!-- Grid Biodata -->
+        <div class="grid grid-cols-2 gap-3 text-sm">
+            <div class="bg-black/30 rounded-lg p-3">
+                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">ID</p>
+                <p id="ud_id" class="font-semibold text-white">-</p>
+            </div>
+            <div class="bg-black/30 rounded-lg p-3">
+                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Username</p>
+                <p id="ud_username" class="font-semibold text-white">-</p>
+            </div>
+            <div class="col-span-2 bg-black/30 rounded-lg p-3">
+                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Email</p>
+                <p id="ud_email" class="font-semibold text-white">-</p>
+            </div>
+            <div class="bg-black/30 rounded-lg p-3">
+                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Jenis Kelamin</p>
+                <p id="ud_jenis_kelamin" class="font-semibold text-white">-</p>
+            </div>
+            <div class="bg-black/30 rounded-lg p-3">
+                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">No. HP/WA</p>
+                <p id="ud_no_hp" class="font-semibold text-white">-</p>
+            </div>
+            <div class="bg-black/30 rounded-lg p-3">
+                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Kota</p>
+                <p id="ud_kota" class="font-semibold text-white">-</p>
+            </div>
+            <div class="bg-black/30 rounded-lg p-3">
+                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Terdaftar</p>
+                <p id="ud_created_at" class="font-semibold text-white">-</p>
+            </div>
+            <div class="col-span-2 bg-black/30 rounded-lg p-3">
+                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Instansi / Sekolah / Kampus</p>
+                <p id="ud_instansi" class="font-semibold text-white">-</p>
+            </div>
+        </div>
+        <!-- Statistik -->
+        <div class="mt-4 grid grid-cols-3 gap-3 text-center text-sm">
+            <div class="bg-green-900/30 border border-green-700 rounded-lg p-3">
+                <p class="text-2xl font-bold text-green-400" id="ud_bab_lulus">-</p>
+                <p class="text-xs text-gray-400 mt-1">Bab Lulus</p>
+            </div>
+            <div class="bg-yellow-900/30 border border-yellow-700 rounded-lg p-3">
+                <p class="text-2xl font-bold text-yellow-400" id="ud_nilai_sertifikat">-</p>
+                <p class="text-xs text-gray-400 mt-1">Nilai Sertifikat</p>
+            </div>
+            <div class="bg-blue-900/30 border border-blue-700 rounded-lg p-3">
+                <p class="text-2xl font-bold text-blue-400" id="ud_total_sertifikat">-</p>
+                <p class="text-xs text-gray-400 mt-1">Sertifikat</p>
+            </div>
+        </div>
+        <div class="mt-5 flex justify-end">
+            <button onclick="closeUserDetailModal()" class="btn-outline px-6">Tutup</button>
         </div>
     </div>
 </div>
@@ -1010,13 +1083,74 @@
                         <tr>
                             <td>${u.id}</td>
                             <td>${escapeHtml(u.username)}</td>
+                            <td>${escapeHtml(u.nama_lengkap || '-')}</td>
+                            <td>
+                                <span class="badge ${u.jenis_kelamin === 'Laki-laki' ? 'badge-info' : u.jenis_kelamin === 'Perempuan' ? 'badge-warning' : ''}">
+                                    ${u.jenis_kelamin ? (u.jenis_kelamin === 'Laki-laki' ? '♂ Laki-laki' : '♀ Perempuan') : '-'}
+                                </span>
+                            </td>
                             <td>${escapeHtml(u.email)}</td>
-                            <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                            <td>${new Date(u.created_at).toLocaleDateString('id-ID')}</td>
+                            <td>
+                                <button onclick="viewUserDetail(${u.id})" class="btn-info text-xs">
+                                    <i class="fas fa-eye mr-1"></i>Detail
+                                </button>
+                            </td>
                         </tr>
                     `).join('');
                 }
             }
         } catch(e) { console.error(e); }
+    }
+
+    async function viewUserDetail(id) {
+        showLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/users/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            showLoading(false);
+            if (!data.success) { alert('Gagal memuat detail user'); return; }
+            const u = data.data;
+
+            // Foto profil
+            const avatar = document.getElementById('udAvatar');
+            const avatarIcon = document.getElementById('udAvatarIcon');
+            if (u.foto_profil) {
+                avatar.src = 'http://localhost:5000' + u.foto_profil;
+                avatar.classList.remove('hidden');
+                avatarIcon.classList.add('hidden');
+            } else {
+                avatar.classList.add('hidden');
+                avatarIcon.classList.remove('hidden');
+            }
+
+            // Isi field
+            document.getElementById('ud_nama').textContent = u.nama_lengkap || u.username || '-';
+            document.getElementById('ud_nomor_peserta').textContent = 'No. Peserta: ' + (u.nomor_peserta || 'Belum Tersedia');
+            document.getElementById('ud_id').textContent = u.id;
+            document.getElementById('ud_username').textContent = u.username || '-';
+            document.getElementById('ud_email').textContent = u.email || '-';
+            document.getElementById('ud_jenis_kelamin').textContent = u.jenis_kelamin || '-';
+            document.getElementById('ud_no_hp').textContent = u.no_hp || '-';
+            document.getElementById('ud_kota').textContent = u.kota || '-';
+            document.getElementById('ud_instansi').textContent = u.instansi || '-';
+            document.getElementById('ud_created_at').textContent = new Date(u.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            // Statistik
+            document.getElementById('ud_bab_lulus').textContent = u.bab_lulus ?? '-';
+            document.getElementById('ud_nilai_sertifikat').textContent = u.nilai_sertifikat ? u.nilai_sertifikat + '%' : '-';
+            document.getElementById('ud_total_sertifikat').textContent = u.total_sertifikat ?? '0';
+
+            document.getElementById('userDetailModal').classList.add('active');
+        } catch(e) {
+            showLoading(false);
+            alert('Gagal terhubung ke server');
+        }
+    }
+
+    function closeUserDetailModal() {
+        document.getElementById('userDetailModal').classList.remove('active');
     }
 
     // ==================== PEMBAYARAN ====================

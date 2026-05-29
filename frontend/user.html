@@ -369,6 +369,10 @@
                                 <p id="view_no_hp" class="font-semibold text-white">-</p>
                             </div>
                             <div class="bg-black/30 rounded-lg p-3">
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Jenis Kelamin</p>
+                                <p id="view_jenis_kelamin" class="font-semibold text-white">-</p>
+                            </div>
+                            <div class="bg-black/30 rounded-lg p-3">
                                 <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Kota / Kabupaten</p>
                                 <p id="view_kota" class="font-semibold text-white">-</p>
                             </div>
@@ -411,6 +415,14 @@
                         <div class="md:col-span-2">
                             <label class="block text-sm mb-2 text-gray-300">Nama Lengkap (Sesuai KTP/Ijazah)</label>
                             <input type="text" id="edit_nama_lengkap" name="nama_lengkap" class="cyber-input w-full" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-2 text-gray-300">Jenis Kelamin</label>
+                            <select id="edit_jenis_kelamin" name="jenis_kelamin" class="cyber-input w-full">
+                                <option value="">-- Pilih Jenis Kelamin --</option>
+                                <option value="Laki-laki">Laki-laki</option>
+                                <option value="Perempuan">Perempuan</option>
+                            </select>
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm mb-2 text-gray-400">Instansi / Sekolah / Kampus</label>
@@ -1067,6 +1079,7 @@
                 document.getElementById('view_username').textContent = user.username || '-';
                 document.getElementById('view_email').textContent = user.email || '-';
                 document.getElementById('view_no_hp').textContent = user.no_hp || '-';
+                document.getElementById('view_jenis_kelamin').textContent = user.jenis_kelamin || '-';
                 document.getElementById('view_kota').textContent = user.kota || '-';
                 document.getElementById('view_instansi').textContent = user.instansi || '-';
 
@@ -1083,6 +1096,7 @@
                 document.getElementById('edit_username').value = user.username || savedUsername || '';
                 document.getElementById('edit_nomor_peserta').value = user.nomor_peserta || 'Belum Tersedia';
                 document.getElementById('edit_nama_lengkap').value = user.nama_lengkap || '';
+                document.getElementById('edit_jenis_kelamin').value = user.jenis_kelamin || '';
                 document.getElementById('edit_no_hp').value = user.no_hp || '';
                 document.getElementById('edit_instansi').value = user.instansi || '';
                 document.getElementById('edit_kota').value = user.kota || '';

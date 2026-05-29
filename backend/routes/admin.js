@@ -394,7 +394,7 @@ module.exports = (db, dbQuery) => {
     router.get('/users', verifyAdmin, async (req, res) => {
         try {
             const users = await dbQuery(`
-                SELECT id, username, email, nama_lengkap, no_hp, instansi, kota, 
+                SELECT id, username, email, nama_lengkap, jenis_kelamin, no_hp, instansi, kota, 
                        foto_profil, nomor_peserta, created_at
                 FROM users ORDER BY created_at DESC
             `);
@@ -407,7 +407,7 @@ module.exports = (db, dbQuery) => {
     router.get('/users/:id', verifyAdmin, async (req, res) => {
         try {
             const users = await dbQuery(`
-                SELECT u.id, u.username, u.email, u.nama_lengkap, u.no_hp, 
+                SELECT u.id, u.username, u.email, u.nama_lengkap, u.jenis_kelamin, u.no_hp, 
                        u.instansi, u.kota, u.foto_profil, u.nomor_peserta, u.created_at,
                        COUNT(DISTINCT nb.bab_id) as bab_lulus,
                        (SELECT persentase FROM hasil_sertifikat WHERE user_id = u.id AND is_lulus = 1 ORDER BY completed_at DESC LIMIT 1) as nilai_sertifikat,

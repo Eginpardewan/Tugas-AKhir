@@ -12,7 +12,7 @@ USE tajwid_learning;
 
 -- =====================================================
 -- 1. TABEL USER (Siswa)
---    PERBAIKAN: nomor_hp -> no_hp, tambah nomor_peserta
+--    PERBAIKAN: nomor_hp -> no_hp, tambah nomor_peserta, tambah jenis_kelamin
 -- =====================================================
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -20,6 +20,7 @@ CREATE TABLE users (
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     nama_lengkap VARCHAR(255) DEFAULT '',
+    jenis_kelamin ENUM('Laki-laki', 'Perempuan') DEFAULT NULL,
     no_hp VARCHAR(20) DEFAULT NULL,
     instansi VARCHAR(255) DEFAULT NULL,
     kota VARCHAR(100) DEFAULT NULL,

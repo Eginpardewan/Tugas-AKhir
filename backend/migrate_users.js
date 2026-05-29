@@ -23,7 +23,8 @@ db.connect((err) => {
         "ALTER TABLE users ADD COLUMN instansi VARCHAR(255) DEFAULT NULL",
         "ALTER TABLE users ADD COLUMN kota VARCHAR(255) DEFAULT NULL",
         "ALTER TABLE users ADD COLUMN foto_profil VARCHAR(255) DEFAULT NULL",
-        "ALTER TABLE users ADD COLUMN nomor_peserta VARCHAR(50) UNIQUE DEFAULT NULL"
+        "ALTER TABLE users ADD COLUMN nomor_peserta VARCHAR(50) UNIQUE DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN jenis_kelamin ENUM('Laki-laki', 'Perempuan') DEFAULT NULL AFTER nama_lengkap"
     ];
 
     let completed = 0;

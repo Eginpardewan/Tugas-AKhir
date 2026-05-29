@@ -527,7 +527,15 @@ async function loadProfileData() {
             document.getElementById("edit_no_hp").value = user.no_hp || "";
             document.getElementById("edit_instansi").value = user.instansi || "";
             document.getElementById("edit_kota").value = user.kota || "";
-            
+
+            // Jenis Kelamin - edit dropdown
+            const jkSelect = document.getElementById("edit_jenis_kelamin");
+            if (jkSelect) jkSelect.value = user.jenis_kelamin || "";
+
+            // Jenis Kelamin - lihat profil
+            const viewJK = document.getElementById("view_jenis_kelamin");
+            if (viewJK) viewJK.textContent = user.jenis_kelamin || "-";
+
             // Tampilkan foto profil jika ada
             const img = document.getElementById("profilePreview");
             const icon = document.getElementById("profileAvatarIcon");

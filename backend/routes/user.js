@@ -480,7 +480,7 @@ module.exports = (db, dbQuery) => {
     router.get('/profile', verifyUser, async (req, res) => {
         try {
             const users = await dbQuery(
-                'SELECT id, username, email, nama_lengkap, no_hp, instansi, kota, foto_profil, nomor_peserta FROM users WHERE id = ?',
+                'SELECT id, username, email, nama_lengkap, jenis_kelamin, no_hp, instansi, kota, foto_profil, nomor_peserta FROM users WHERE id = ?',
                 [req.userId]
             );
             if (users.length === 0) return res.status(404).json({ success: false, message: 'User tidak ditemukan' });
@@ -491,7 +491,7 @@ module.exports = (db, dbQuery) => {
     });
 
     router.put('/profile', verifyUser, upload.single('foto_profil'), async (req, res) => {
-        const { nama_lengkap, no_hp, instansi, kota, username, new_password } = req.body;
+        const { nama_lengkap, jenis_kelamin, no_hp, instansi, kota, username, new_password } = req.body;
         
         try {
             // Cek apakah username baru sudah dipakai user lain
@@ -505,8 +505,8 @@ module.exports = (db, dbQuery) => {
                 }
             }
 
-            let updateQuery = 'UPDATE users SET nama_lengkap = ?, no_hp = ?, instansi = ?, kota = ?, username = ?';
-            let params = [nama_lengkap || '', no_hp || null, instansi || null, kota || null, username || null];
+            let updateQuery = 'UPDATE users SET nama_lengkap = ?, jenis_kelamin = ?, no_hp = ?, instansi = ?, kota = ?, username = ?';
+            let params = [nama_lengkap || '', jenis_kelamin || null, no_hp || null, instansi || null, kota || null, username || null];
 
             // Ganti password jika diisi
             if (new_password && new_password.trim().length >= 6) {
