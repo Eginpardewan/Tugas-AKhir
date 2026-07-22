@@ -1,13 +1,26 @@
 {
-  "name": "backend",
+  "name": "tajwid-learning-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend API untuk Tajwid Learning - Express.js + SQLite",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
-  "keywords": [],
+  "keywords": ["express", "api", "tajwid", "sqlite"],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^9.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "ethers": "^5.7.2",
+    "express": "^4.18.2",
+    "ipfs-http-client": "^60.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
 }

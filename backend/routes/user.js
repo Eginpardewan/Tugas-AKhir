@@ -17,52 +17,12 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
-// Auto-grade function
-function autoGradeEssay(jawabanUser, jawabanBenar, kataKunci = '', poinMaksimal = 10) {
-    const normalize = (text) => {
-        return text.toLowerCase()
-            .replace(/[^\w\s]/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-    };
-    
-    const normalizedUser = normalize(jawabanUser);
-    const normalizedBenar = normalize(jawabanBenar);
-    
-    const userWords = normalizedUser.split(' ');
-    const benarWords = normalizedBenar.split(' ');
-    
-    let matchCount = 0;
-    for (const word of userWords) {
-        if (benarWords.includes(word) && word.length > 2) {
-            matchCount++;
-        }
-    }
-    
-    let similarity = benarWords.length > 0 ? matchCount / benarWords.length : 0;
-    
-    let kataKunciBonus = 0;
-    if (kataKunci) {
-        const keywords = kataKunci.toLowerCase().split(',').map(k => k.trim());
-        let matchedKeywords = 0;
-        keywords.forEach(keyword => {
-            if (normalizedUser.includes(keyword)) {
-                matchedKeywords++;
-            }
-        });
-        kataKunciBonus = (matchedKeywords / keywords.length) * 0.3;
-    }
-    
-    let finalPercentage = Math.min(100, (similarity * 100) + (kataKunciBonus * 100));
-    const nilai = Math.round((finalPercentage / 100) * poinMaksimal);
-    
-    let feedback = '';
-    if (finalPercentage >= 85) feedback = 'Sangat baik! Jawaban Anda tepat dan lengkap.';
-    else if (finalPercentage >= 70) feedback = 'Baik! Jawaban Anda sudah tepat, namun masih ada poin yang perlu dilengkapi.';
-    else if (finalPercentage >= 50) feedback = 'Cukup. Jawaban Anda sudah mendekati jawaban yang diharapkan.';
-    else feedback = `Masih perlu belajar. Jawaban yang diharapkan: ${jawabanBenar.substring(0, 200)}${jawabanBenar.length > 200 ? '...' : ''}`;
-    
-    return { nilai, persentase: Math.round(finalPercentage), feedback };
+// Pilihan ganda: bandingkan jawaban huruf
+function autoGradePG(jawabanUser, jawabanBenar, poinMaksimal = 10) {
+    const benar = (jawabanUser || '').toUpperCase().trim() === (jawabanBenar || '').toUpperCase().trim();
+    const nilai = benar ? poinMaksimal : 0;
+    const feedback = benar ? 'Jawaban benar! ✅' : `Jawaban salah. Kunci: ${jawabanBenar.toUpperCase()}`;
+    return { nilai, benar, feedback };
 }
 
 function getRandomSoal(arr, jumlah) {
@@ -158,7 +118,7 @@ module.exports = (db, dbQuery) => {
         
         try {
             const allSoal = await dbQuery(
-                'SELECT id, pertanyaan, poin FROM soal_bab WHERE bab_id = ? AND is_active = 1',
+                'SELECT id, pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, poin FROM soal_bab WHERE bab_id = ? AND is_active = 1',
                 [bab_id]
             );
             
@@ -187,7 +147,14 @@ module.exports = (db, dbQuery) => {
                 soal: randomSoal.map((s, idx) => ({ 
                     nomor: idx + 1, 
                     id: s.id, 
-                    pertanyaan: s.pertanyaan, 
+                    pertanyaan: s.pertanyaan,
+                    pilihan: {
+                        A: s.pilihan_a,
+                        B: s.pilihan_b,
+                        C: s.pilihan_c,
+                        D: s.pilihan_d,
+                        E: s.pilihan_e
+                    },
                     poin: s.poin 
                 })),
                 total_soal: randomSoal.length
@@ -223,7 +190,7 @@ module.exports = (db, dbQuery) => {
                 const soal = soals.find(s => s.id === jawab.soal_id);
                 if (!soal) continue;
                 
-                const grade = autoGradeEssay(jawab.jawaban_user, soal.jawaban_benar, soal.kata_kunci, soal.poin);
+                const grade = autoGradePG(jawab.jawaban_user, soal.jawaban_benar, soal.poin);
                 totalNilai += grade.nilai;
                 totalMaksimal += soal.poin;
                 
@@ -237,7 +204,7 @@ module.exports = (db, dbQuery) => {
             const persentase = totalMaksimal > 0 ? Math.round((totalNilai / totalMaksimal) * 100) : 0;
             const isLulus = persentase >= 80;
             
-            await dbQuery(`UPDATE exam_sessions SET completed_at = NOW() WHERE id = ?`, [session_id]);
+            await dbQuery(`UPDATE exam_sessions SET completed_at = CURRENT_TIMESTAMP WHERE id = ?`, [session_id]);
             
             await dbQuery(
                 `INSERT INTO nilai_bab (user_id, bab_id, session_id, total_nilai, maksimal_nilai, persentase, is_lulus) 
@@ -344,7 +311,7 @@ module.exports = (db, dbQuery) => {
             }
             
             const allSoal = await dbQuery(
-                'SELECT id, pertanyaan, poin FROM soal_sertifikat WHERE is_active = 1'
+                'SELECT id, pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, poin FROM soal_sertifikat WHERE is_active = 1'
             );
             
             if (allSoal.length < 25) {
@@ -371,7 +338,14 @@ module.exports = (db, dbQuery) => {
                 soal: randomSoal.map((s, idx) => ({ 
                     nomor: idx + 1, 
                     id: s.id, 
-                    pertanyaan: s.pertanyaan, 
+                    pertanyaan: s.pertanyaan,
+                    pilihan: {
+                        A: s.pilihan_a,
+                        B: s.pilihan_b,
+                        C: s.pilihan_c,
+                        D: s.pilihan_d,
+                        E: s.pilihan_e
+                    },
                     poin: s.poin 
                 })),
                 total_soal: randomSoal.length
@@ -406,7 +380,7 @@ module.exports = (db, dbQuery) => {
                 const soal = soals.find(s => s.id === jawab.soal_id);
                 if (!soal) continue;
                 
-                const grade = autoGradeEssay(jawab.jawaban_user, soal.jawaban_benar, soal.kata_kunci, soal.poin);
+                const grade = autoGradePG(jawab.jawaban_user, soal.jawaban_benar, soal.poin);
                 totalNilai += grade.nilai;
                 totalMaksimal += soal.poin;
                 
@@ -420,7 +394,7 @@ module.exports = (db, dbQuery) => {
             const persentase = totalMaksimal > 0 ? Math.round((totalNilai / totalMaksimal) * 100) : 0;
             const isLulus = persentase >= 80;
             
-            await dbQuery(`UPDATE exam_sessions SET completed_at = NOW() WHERE id = ?`, [session_id]);
+            await dbQuery(`UPDATE exam_sessions SET completed_at = CURRENT_TIMESTAMP WHERE id = ?`, [session_id]);
             
             await dbQuery(
                 `INSERT INTO hasil_sertifikat (user_id, session_id, total_nilai, maksimal_nilai, persentase, is_lulus) 
@@ -528,6 +502,101 @@ module.exports = (db, dbQuery) => {
             res.status(500).json({ success: false, message: err.message });
         }
     });
+
+    // ==================== BLOCKCHAIN NILAI BAB ====================
+
+    /**
+     * POST /api/user/record-bab-blockchain
+     * Dipanggil frontend setelah user berhasil kirim transaksi ke blockchain.
+     * Menyimpan TX hash ke database agar bisa ditampilkan di profil/progress.
+     */
+    router.post('/record-bab-blockchain', verifyUser, async (req, res) => {
+        const { bab_id, bab_nama, nilai, is_lulus, transaction_hash, wallet_address } = req.body;
+
+        if (!bab_id || !bab_nama || nilai === undefined || !transaction_hash || !wallet_address) {
+            return res.status(400).json({
+                success: false,
+                message: 'Data tidak lengkap: bab_id, bab_nama, nilai, transaction_hash, wallet_address wajib diisi'
+            });
+        }
+
+        // Validasi format TX hash Ethereum
+        if (!/^0x[a-fA-F0-9]{64}$/.test(transaction_hash)) {
+            return res.status(400).json({ success: false, message: 'Format transaction_hash tidak valid' });
+        }
+
+        try {
+            // Cek apakah TX hash sudah pernah tersimpan (mencegah duplikasi)
+            const existing = await dbQuery(
+                'SELECT id FROM blockchain_bab_results WHERE transaction_hash = ?',
+                [transaction_hash]
+            );
+            if (existing.length > 0) {
+                return res.status(409).json({ success: false, message: 'Transaction hash sudah tersimpan sebelumnya' });
+            }
+
+            await dbQuery(
+                `INSERT INTO blockchain_bab_results 
+                 (user_id, bab_id, bab_nama, nilai, is_lulus, transaction_hash, wallet_address)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [req.userId, bab_id, bab_nama, nilai, is_lulus ? 1 : 0, transaction_hash, wallet_address]
+            );
+
+            res.json({
+                success: true,
+                message: 'Nilai bab berhasil dicatat ke blockchain dan database',
+                data: { transaction_hash, bab_nama, nilai, is_lulus }
+            });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+
+    /**
+     * GET /api/user/blockchain-bab-results
+     * Ambil semua hasil ujian bab yang sudah dicatat di blockchain milik user ini.
+     */
+    router.get('/blockchain-bab-results', verifyUser, async (req, res) => {
+        try {
+            const results = await dbQuery(
+                `SELECT bbr.*, b.nama as bab_nama_full
+                 FROM blockchain_bab_results bbr
+                 LEFT JOIN babs b ON bbr.bab_id = b.id
+                 WHERE bbr.user_id = ?
+                 ORDER BY bbr.recorded_at DESC`,
+                [req.userId]
+            );
+            res.json({ success: true, data: results });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+
+    // Public route to verify certificate by transaction hash or blockchain id or nomor_peserta
+    router.get('/public/verify-certificate/:identifier', async (req, res) => {
+        const { identifier } = req.params;
+        try {
+            const certificates = await dbQuery(
+                `SELECT c.*, p.amount, p.status as payment_status,
+                        u.nama_lengkap, u.nomor_peserta, h.persentase as nilai
+                 FROM certificates c
+                 JOIN payments p ON c.payment_id = p.id
+                 JOIN users u ON c.user_id = u.id
+                 LEFT JOIN hasil_sertifikat h ON h.user_id = c.user_id AND h.is_lulus = 1
+                 WHERE c.transaction_hash = ? OR c.blockchain_id = ? OR u.nomor_peserta = ?
+                 ORDER BY c.issued_at DESC`,
+                [identifier, identifier, identifier]
+            );
+            
+            if (certificates.length === 0) {
+                return res.status(404).json({ success: false, message: 'Sertifikat tidak ditemukan atau belum terdaftar di blockchain' });
+            }
+            
+            res.json({ success: true, data: certificates[0] });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
     
     return router;
-};
+};

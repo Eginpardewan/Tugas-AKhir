@@ -118,6 +118,7 @@
             .overlay.active { display: block; }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
 </head>
 <body>
 
@@ -128,7 +129,7 @@
             <button class="menu-btn bg-transparent border-none text-white text-2xl cursor-pointer hidden" id="menuToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <img src="img/logo.jpeg" alt="Logo Al-Firqoh" class="h-8 w-8 rounded-full border border-green-600">
+            <img src="img/logo.png" alt="Logo Al-Firqoh" class="h-8 w-8 rounded-full border border-green-600">
             <span class="text-xl font-bold">Tajwid Admin</span>
         </div>
         <div class="flex items-center gap-4">
@@ -332,7 +333,6 @@
     </div>
 </div>
 
-<!-- Modal Soal Bab (dengan Edit) -->
 <div id="soalBabModal" class="modal">
     <div class="modal-content max-w-2xl">
         <div class="flex justify-between items-center mb-4">
@@ -341,12 +341,52 @@
         </div>
         <form id="soalBabForm">
             <input type="hidden" id="soalBabId">
-            <div class="mb-3"><label class="block text-sm mb-1">Pilih Bab</label><select id="soalBabBabId" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></select></div>
-            <div class="mb-3"><label class="block text-sm mb-1">Pertanyaan</label><textarea id="soalBabPertanyaan" rows="3" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></textarea></div>
-            <div class="mb-3"><label class="block text-sm mb-1">Jawaban Benar</label><textarea id="soalBabJawaban" rows="3" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></textarea></div>
-            <div class="mb-3"><label class="block text-sm mb-1">Kata Kunci</label><input type="text" id="soalBabKataKunci" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></div>
-            <div class="mb-4"><label class="block text-sm mb-1">Poin</label><input type="number" id="soalBabPoin" class="w-full p-2 rounded bg-black/50 border border-green-500/30" value="10"></div>
-            <div class="flex gap-3"><button type="submit" class="btn-primary flex-1">Simpan</button><button type="button" onclick="closeSoalBabModal()" class="btn-outline flex-1">Batal</button></div>
+            <div class="mb-3"><label class="block text-sm mb-1 font-semibold text-green-400">📚 Pilih Bab</label><select id="soalBabBabId" class="w-full p-2 rounded bg-black/50 border border-green-500/30 text-white" required></select></div>
+            <div class="mb-3"><label class="block text-sm mb-1 font-semibold text-green-400">❓ Pertanyaan</label><textarea id="soalBabPertanyaan" rows="3" class="w-full p-2 rounded bg-black/50 border border-green-500/30" placeholder="Tulis pertanyaan di sini..." required></textarea></div>
+            <!-- Pilihan Ganda -->
+            <div class="mb-3 bg-black/30 p-3 rounded-lg border border-green-500/20">
+                <p class="text-sm font-semibold text-yellow-400 mb-2">🅰️ Pilihan Jawaban</p>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400 font-bold w-6 text-center">A</span>
+                        <input type="text" id="soalBabPilihanA" class="flex-1 p-2 rounded bg-black/50 border border-green-500/30 text-sm" placeholder="Pilihan A" required>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400 font-bold w-6 text-center">B</span>
+                        <input type="text" id="soalBabPilihanB" class="flex-1 p-2 rounded bg-black/50 border border-green-500/30 text-sm" placeholder="Pilihan B" required>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400 font-bold w-6 text-center">C</span>
+                        <input type="text" id="soalBabPilihanC" class="flex-1 p-2 rounded bg-black/50 border border-green-500/30 text-sm" placeholder="Pilihan C" required>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400 font-bold w-6 text-center">D</span>
+                        <input type="text" id="soalBabPilihanD" class="flex-1 p-2 rounded bg-black/50 border border-green-500/30 text-sm" placeholder="Pilihan D" required>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400 font-bold w-6 text-center">E</span>
+                        <input type="text" id="soalBabPilihanE" class="flex-1 p-2 rounded bg-black/50 border border-green-500/30 text-sm" placeholder="Pilihan E" required>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3 flex gap-3">
+                <div class="flex-1">
+                    <label class="block text-sm mb-1 font-semibold text-green-400">✅ Kunci Jawaban</label>
+                    <select id="soalBabJawaban" class="w-full p-2 rounded bg-black/50 border border-green-500/30 text-white" required>
+                        <option value="">-- Pilih --</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                    </select>
+                </div>
+                <div class="w-28">
+                    <label class="block text-sm mb-1 font-semibold text-green-400">🏆 Poin</label>
+                    <input type="number" id="soalBabPoin" class="w-full p-2 rounded bg-black/50 border border-green-500/30" value="10" min="1" max="100">
+                </div>
+            </div>
+            <div class="flex gap-3"><button type="submit" class="btn-primary flex-1">Simpan Soal</button><button type="button" onclick="closeSoalBabModal()" class="btn-outline flex-1">Batal</button></div>
         </form>
     </div>
 </div>
@@ -360,11 +400,51 @@
         </div>
         <form id="soalSertifikatForm">
             <input type="hidden" id="soalSertifikatId">
-            <div class="mb-3"><label class="block text-sm mb-1">Pertanyaan</label><textarea id="soalSertifikatPertanyaan" rows="3" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></textarea></div>
-            <div class="mb-3"><label class="block text-sm mb-1">Jawaban Benar</label><textarea id="soalSertifikatJawaban" rows="3" class="w-full p-2 rounded bg-black/50 border border-green-500/30" required></textarea></div>
-            <div class="mb-3"><label class="block text-sm mb-1">Kata Kunci</label><input type="text" id="soalSertifikatKataKunci" class="w-full p-2 rounded bg-black/50 border border-green-500/30"></div>
-            <div class="mb-4"><label class="block text-sm mb-1">Poin</label><input type="number" id="soalSertifikatPoin" class="w-full p-2 rounded bg-black/50 border border-green-500/30" value="10"></div>
-            <div class="flex gap-3"><button type="submit" class="btn-primary flex-1">Simpan</button><button type="button" onclick="closeSoalSertifikatModal()" class="btn-outline flex-1">Batal</button></div>
+            <div class="mb-3"><label class="block text-sm mb-1 font-semibold text-green-400">❓ Pertanyaan</label><textarea id="soalSertifikatPertanyaan" rows="3" class="w-full p-2 rounded bg-black/50 border border-green-500/30" placeholder="Tulis pertanyaan di sini..." required></textarea></div>
+            <!-- Pilihan Ganda -->
+            <div class="mb-3 bg-black/30 p-3 rounded-lg border border-green-500/20">
+                <p class="text-sm font-semibold text-yellow-400 mb-2">🅰️ Pilihan Jawaban</p>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400 font-bold w-6 text-center">A</span>
+                        <input type="text" id="soalSertifikatPilihanA" class="flex-1 p-2 rounded bg-black/50 border border-green-500/30 text-sm" placeholder="Pilihan A" required>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400 font-bold w-6 text-center">B</span>
+                        <input type="text" id="soalSertifikatPilihanB" class="flex-1 p-2 rounded bg-black/50 border border-green-500/30 text-sm" placeholder="Pilihan B" required>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400 font-bold w-6 text-center">C</span>
+                        <input type="text" id="soalSertifikatPilihanC" class="flex-1 p-2 rounded bg-black/50 border border-green-500/30 text-sm" placeholder="Pilihan C" required>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400 font-bold w-6 text-center">D</span>
+                        <input type="text" id="soalSertifikatPilihanD" class="flex-1 p-2 rounded bg-black/50 border border-green-500/30 text-sm" placeholder="Pilihan D" required>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400 font-bold w-6 text-center">E</span>
+                        <input type="text" id="soalSertifikatPilihanE" class="flex-1 p-2 rounded bg-black/50 border border-green-500/30 text-sm" placeholder="Pilihan E" required>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3 flex gap-3">
+                <div class="flex-1">
+                    <label class="block text-sm mb-1 font-semibold text-green-400">✅ Kunci Jawaban</label>
+                    <select id="soalSertifikatJawaban" class="w-full p-2 rounded bg-black/50 border border-green-500/30 text-white" required>
+                        <option value="">-- Pilih --</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                    </select>
+                </div>
+                <div class="w-28">
+                    <label class="block text-sm mb-1 font-semibold text-green-400">🏆 Poin</label>
+                    <input type="number" id="soalSertifikatPoin" class="w-full p-2 rounded bg-black/50 border border-green-500/30" value="10" min="1" max="100">
+                </div>
+            </div>
+            <div class="flex gap-3"><button type="submit" class="btn-primary flex-1">Simpan Soal</button><button type="button" onclick="closeSoalSertifikatModal()" class="btn-outline flex-1">Batal</button></div>
         </form>
     </div>
 </div>
@@ -464,6 +544,40 @@
         </div>
         <div class="mt-5 flex justify-end">
             <button onclick="closeUserDetailModal()" class="btn-outline px-6">Tutup</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Minting Blockchain -->
+<div id="mintingModal" class="modal">
+    <div class="modal-content max-w-md">
+        <div class="flex justify-between items-center mb-5 border-b border-gray-700 pb-3">
+            <h3 class="text-xl font-bold text-purple-400"><i class="fas fa-cubes mr-2"></i>Minting Sertifikat ke Blockchain</h3>
+            <button onclick="closeMintingModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Nama Siswa</p>
+            <p id="mintUserName" class="font-bold text-white text-lg">-</p>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">IPFS Hash (Decentralized Metadata)</p>
+            <div class="bg-black/50 p-2 rounded border border-purple-500/30 flex justify-between items-center">
+                <span id="mintIpfsHash" class="font-mono text-xs text-purple-300 truncate mr-2">-</span>
+                <button onclick="copyIpfsText()" class="text-xs text-gray-400 hover:text-white"><i class="far fa-copy"></i></button>
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">Alamat Wallet Penerima (Siswa)</label>
+            <input type="text" id="mintWalletAddress" class="w-full p-2.5 rounded bg-black/50 border border-purple-500/30 text-white font-mono text-xs focus:border-purple-500 outline-none" placeholder="Masukkan alamat wallet 0x...">
+            <p class="text-[10px] text-gray-500 mt-1.5"><i class="fas fa-info-circle mr-1"></i>Diisi otomatis dengan alamat dompet Admin yang terhubung.</p>
+        </div>
+        
+        <div class="flex gap-3">
+            <button id="confirmMintBtn" class="btn-primary flex-1 bg-purple-600 hover:bg-purple-800 border-purple-500">Terbitkan ke Blockchain</button>
+            <button type="button" onclick="closeMintingModal()" class="btn-outline flex-1">Batal</button>
         </div>
     </div>
 </div>
@@ -883,17 +997,26 @@
             const container = document.getElementById('soalBabList');
             if (!container) return;
             if (data.data.length === 0) { container.innerHTML = '<div class="card text-center">Belum ada soal. Silakan tambah soal baru.</div>'; return; }
-            container.innerHTML = data.data.map(s => `
+            container.innerHTML = data.data.map((s, idx) => `
                 <div class="card">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <h3 class="font-bold">${escapeHtml(s.pertanyaan.substring(0, 100))}...</h3>
-                            <p class="text-sm text-gray-400 mt-1">Bab: ${escapeHtml(s.bab_nama)}</p>
-                            <p class="text-xs text-gray-500">Jawaban: ${escapeHtml(s.jawaban_benar.substring(0, 80))}...</p>
-                            ${s.kata_kunci ? `<p class="text-xs text-gray-500">Kata Kunci: ${escapeHtml(s.kata_kunci)}</p>` : ''}
-                            <span class="badge badge-info text-xs mt-1">Poin: ${s.poin}</span>
+                    <div class="flex justify-between items-start gap-4">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="badge badge-info text-xs">#${idx+1}</span>
+                                <span class="badge badge-success text-xs">Bab: ${escapeHtml(s.bab_nama)}</span>
+                                <span class="badge badge-warning text-xs">Poin: ${s.poin}</span>
+                                <span class="bg-green-900/40 text-green-400 border border-green-700 px-2 py-0.5 rounded text-xs font-bold">Kunci: ${escapeHtml(s.jawaban_benar)}</span>
+                            </div>
+                            <h3 class="font-bold text-sm mb-2">${escapeHtml(s.pertanyaan)}</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs text-gray-400">
+                                ${s.pilihan_a ? `<span><b class="text-green-400">A.</b> ${escapeHtml(s.pilihan_a)}</span>` : ''}
+                                ${s.pilihan_b ? `<span><b class="text-green-400">B.</b> ${escapeHtml(s.pilihan_b)}</span>` : ''}
+                                ${s.pilihan_c ? `<span><b class="text-green-400">C.</b> ${escapeHtml(s.pilihan_c)}</span>` : ''}
+                                ${s.pilihan_d ? `<span><b class="text-green-400">D.</b> ${escapeHtml(s.pilihan_d)}</span>` : ''}
+                                ${s.pilihan_e ? `<span><b class="text-green-400">E.</b> ${escapeHtml(s.pilihan_e)}</span>` : ''}
+                            </div>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 flex-shrink-0">
                             <button onclick="editSoalBab(${s.id})" class="btn-warning">Edit</button>
                             <button onclick="deleteSoalBab(${s.id})" class="btn-danger">Hapus</button>
                         </div>
@@ -914,8 +1037,12 @@
                     document.getElementById('soalBabId').value = soal.id;
                     document.getElementById('soalBabBabId').value = soal.bab_id;
                     document.getElementById('soalBabPertanyaan').value = soal.pertanyaan;
+                    document.getElementById('soalBabPilihanA').value = soal.pilihan_a || '';
+                    document.getElementById('soalBabPilihanB').value = soal.pilihan_b || '';
+                    document.getElementById('soalBabPilihanC').value = soal.pilihan_c || '';
+                    document.getElementById('soalBabPilihanD').value = soal.pilihan_d || '';
+                    document.getElementById('soalBabPilihanE').value = soal.pilihan_e || '';
                     document.getElementById('soalBabJawaban').value = soal.jawaban_benar;
-                    document.getElementById('soalBabKataKunci').value = soal.kata_kunci || '';
                     document.getElementById('soalBabPoin').value = soal.poin;
                     document.getElementById('soalBabModalTitle').innerText = 'Edit Soal Per Bab';
                     openSoalBabModal();
@@ -941,9 +1068,13 @@
         const id = document.getElementById('soalBabId').value;
         const data = { 
             bab_id: document.getElementById('soalBabBabId').value, 
-            pertanyaan: document.getElementById('soalBabPertanyaan').value, 
+            pertanyaan: document.getElementById('soalBabPertanyaan').value,
+            pilihan_a: document.getElementById('soalBabPilihanA').value,
+            pilihan_b: document.getElementById('soalBabPilihanB').value,
+            pilihan_c: document.getElementById('soalBabPilihanC').value,
+            pilihan_d: document.getElementById('soalBabPilihanD').value,
+            pilihan_e: document.getElementById('soalBabPilihanE').value,
             jawaban_benar: document.getElementById('soalBabJawaban').value, 
-            kata_kunci: document.getElementById('soalBabKataKunci').value, 
             poin: parseInt(document.getElementById('soalBabPoin').value) 
         };
         const url = id ? `${API_URL}/admin/soal-bab/${id}` : `${API_URL}/admin/soal-bab`;
@@ -958,7 +1089,8 @@
                 await loadSoalBab(); 
                 await loadDashboard(); 
             } else {
-                alert('Gagal menyimpan soal');
+                const err = await res.json();
+                alert('Gagal menyimpan soal: ' + (err.message || ''));
             }
         } catch(e) { showLoading(false); alert('Error: ' + e.message); }
     });
@@ -984,16 +1116,25 @@
             const container = document.getElementById('soalSertifikatList');
             if (!container) return;
             if (data.data.length === 0) { container.innerHTML = '<div class="card text-center">Belum ada soal sertifikat.</div>'; return; }
-            container.innerHTML = data.data.map(s => `
+            container.innerHTML = data.data.map((s, idx) => `
                 <div class="card">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <h3 class="font-bold">${escapeHtml(s.pertanyaan.substring(0, 100))}...</h3>
-                            <p class="text-xs text-gray-500">Jawaban: ${escapeHtml(s.jawaban_benar.substring(0, 80))}...</p>
-                            ${s.kata_kunci ? `<p class="text-xs text-gray-500">Kata Kunci: ${escapeHtml(s.kata_kunci)}</p>` : ''}
-                            <span class="badge badge-info text-xs mt-1">Poin: ${s.poin}</span>
+                    <div class="flex justify-between items-start gap-4">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="badge badge-info text-xs">#${idx+1}</span>
+                                <span class="badge badge-warning text-xs">Poin: ${s.poin}</span>
+                                <span class="bg-green-900/40 text-green-400 border border-green-700 px-2 py-0.5 rounded text-xs font-bold">Kunci: ${escapeHtml(s.jawaban_benar)}</span>
+                            </div>
+                            <h3 class="font-bold text-sm mb-2">${escapeHtml(s.pertanyaan)}</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs text-gray-400">
+                                ${s.pilihan_a ? `<span><b class="text-green-400">A.</b> ${escapeHtml(s.pilihan_a)}</span>` : ''}
+                                ${s.pilihan_b ? `<span><b class="text-green-400">B.</b> ${escapeHtml(s.pilihan_b)}</span>` : ''}
+                                ${s.pilihan_c ? `<span><b class="text-green-400">C.</b> ${escapeHtml(s.pilihan_c)}</span>` : ''}
+                                ${s.pilihan_d ? `<span><b class="text-green-400">D.</b> ${escapeHtml(s.pilihan_d)}</span>` : ''}
+                                ${s.pilihan_e ? `<span><b class="text-green-400">E.</b> ${escapeHtml(s.pilihan_e)}</span>` : ''}
+                            </div>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 flex-shrink-0">
                             <button onclick="editSoalSertifikat(${s.id})" class="btn-warning">Edit</button>
                             <button onclick="deleteSoalSertifikat(${s.id})" class="btn-danger">Hapus</button>
                         </div>
@@ -1013,8 +1154,12 @@
                 if (soal) {
                     document.getElementById('soalSertifikatId').value = soal.id;
                     document.getElementById('soalSertifikatPertanyaan').value = soal.pertanyaan;
+                    document.getElementById('soalSertifikatPilihanA').value = soal.pilihan_a || '';
+                    document.getElementById('soalSertifikatPilihanB').value = soal.pilihan_b || '';
+                    document.getElementById('soalSertifikatPilihanC').value = soal.pilihan_c || '';
+                    document.getElementById('soalSertifikatPilihanD').value = soal.pilihan_d || '';
+                    document.getElementById('soalSertifikatPilihanE').value = soal.pilihan_e || '';
                     document.getElementById('soalSertifikatJawaban').value = soal.jawaban_benar;
-                    document.getElementById('soalSertifikatKataKunci').value = soal.kata_kunci || '';
                     document.getElementById('soalSertifikatPoin').value = soal.poin;
                     document.getElementById('soalSertifikatModalTitle').innerText = 'Edit Soal Sertifikat';
                     openSoalSertifikatModal();
@@ -1036,9 +1181,13 @@
         const token = localStorage.getItem('token');
         const id = document.getElementById('soalSertifikatId').value;
         const data = { 
-            pertanyaan: document.getElementById('soalSertifikatPertanyaan').value, 
+            pertanyaan: document.getElementById('soalSertifikatPertanyaan').value,
+            pilihan_a: document.getElementById('soalSertifikatPilihanA').value,
+            pilihan_b: document.getElementById('soalSertifikatPilihanB').value,
+            pilihan_c: document.getElementById('soalSertifikatPilihanC').value,
+            pilihan_d: document.getElementById('soalSertifikatPilihanD').value,
+            pilihan_e: document.getElementById('soalSertifikatPilihanE').value,
             jawaban_benar: document.getElementById('soalSertifikatJawaban').value, 
-            kata_kunci: document.getElementById('soalSertifikatKataKunci').value, 
             poin: parseInt(document.getElementById('soalSertifikatPoin').value) 
         };
         const url = id ? `${API_URL}/admin/soal-sertifikat/${id}` : `${API_URL}/admin/soal-sertifikat`;
@@ -1053,7 +1202,8 @@
                 await loadSoalSertifikat(); 
                 await loadDashboard(); 
             } else {
-                alert('Gagal menyimpan soal');
+                const err = await res.json();
+                alert('Gagal menyimpan soal: ' + (err.message || ''));
             }
         } catch(e) { showLoading(false); alert('Error: ' + e.message); }
     });
@@ -1162,15 +1312,28 @@
             if (data.success && data.data) {
                 const tbody = document.getElementById('paymentsTableBody');
                 if (tbody) {
-                    tbody.innerHTML = data.data.map(p => `
-                        <tr>
-                            <td>${escapeHtml(p.username)}</td>
-                            <td>Rp ${p.amount?.toLocaleString()}</td>
-                            <td>${p.payment_proof ? `<a href="${p.payment_proof}" target="_blank" class="text-blue-400">Lihat</a>` : '-'}</td>
-                            <td><span class="badge ${p.status === 'pending' ? 'badge-warning' : 'badge-success'}">${p.status}</span></td>
-                            <td>${p.status === 'pending' ? `<button onclick="verifyPayment(${p.id})" class="btn-primary text-sm py-1 px-2">Verifikasi</button>` : '-'}</td>
-                        </tr>
-                    `).join('');
+                    tbody.innerHTML = data.data.map(p => {
+                        let statusClass = 'badge-warning';
+                        if (p.status === 'verified') statusClass = 'badge-info';
+                        if (p.status === 'completed') statusClass = 'badge-success';
+                        
+                        let actionHtml = '-';
+                        if (p.status === 'pending') {
+                            actionHtml = `<button onclick="verifyPayment(${p.id})" class="btn-primary text-sm py-1 px-2">Verifikasi</button>`;
+                        } else if (p.status === 'verified') {
+                            actionHtml = `<button onclick="startMinting(${p.id}, ${p.user_id}, '${escapeHtml(p.username)}')" class="btn-primary text-sm py-1 px-2 bg-purple-600 hover:bg-purple-800 border-purple-500">Mulai Minting</button>`;
+                        }
+                        
+                        return `
+                            <tr>
+                                <td>${escapeHtml(p.username)}</td>
+                                <td>Rp ${p.amount?.toLocaleString()}</td>
+                                <td>${p.payment_proof ? `<a href="${p.payment_proof}" target="_blank" class="text-blue-400">Lihat</a>` : '-'}</td>
+                                <td><span class="badge ${statusClass}">${p.status}</span></td>
+                                <td>${actionHtml}</td>
+                            </tr>
+                        `;
+                    }).join('');
                 }
             }
         } catch(e) { console.error(e); }
@@ -1197,10 +1360,30 @@
             if (!container) return;
             if (data.success && data.data && data.data.length > 0) {
                 container.innerHTML = data.data.map(c => `
-                    <div class="card text-center">
-                        <i class="fas fa-certificate text-4xl text-yellow-500 mb-2"></i>
-                        <p><strong>${escapeHtml(c.username)}</strong></p>
-                        <p class="text-xs text-gray-400">Tx: ${c.transaction_hash?.substring(0, 15)}...</p>
+                    <div class="card bg-black/40 border border-neon-gold/30 p-6 rounded-lg relative overflow-hidden flex flex-col md:flex-row gap-4 items-center justify-between shadow-[0_0_15px_rgba(255,215,0,0.05)]">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-neon-gold/5 rounded-full blur-xl -mr-8 -mt-8"></div>
+                        <div class="flex items-center gap-4 text-left w-full">
+                            <i class="fas fa-certificate text-4xl text-neon-gold drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]"></i>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-bold text-white truncate text-base">${escapeHtml(c.username)}</p>
+                                <p class="text-xs text-gray-400 truncate mt-0.5">${escapeHtml(c.email)}</p>
+                                <div class="flex flex-wrap gap-2 items-center mt-2">
+                                    <span class="px-2 py-0.5 bg-green-950/40 text-neon-green border border-neon-green/30 rounded-full text-[10px] font-bold">BLOCKCHAIN</span>
+                                    <span class="text-[10px] text-neon-gold font-mono">ID: #${c.blockchain_id !== null ? c.blockchain_id : c.id}</span>
+                                </div>
+                                <p class="text-[10px] text-gray-500 mt-2"><i class="far fa-calendar-alt mr-1"></i>${new Date(c.issued_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-center gap-2 w-full md:w-auto mt-4 md:mt-0 flex-shrink-0 bg-white/5 p-3 rounded-lg border border-gray-700/30">
+                            <div class="bg-white p-1 rounded">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent('https://sepolia.etherscan.io/tx/' + c.transaction_hash)}&color=05070a&bgcolor=ffffff" 
+                                     alt="QR" class="w-16 h-16" />
+                            </div>
+                            <a href="https://sepolia.etherscan.io/tx/${c.transaction_hash}" target="_blank" 
+                               class="text-neon-blue text-xs hover:underline flex items-center gap-1">
+                                <i class="fas fa-external-link-alt text-[9px]"></i> Etherscan
+                            </a>
+                        </div>
                     </div>
                 `).join('');
             } else {
@@ -1220,8 +1403,182 @@
         return text.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m);
     }
 
+    // ==================== WEB3 & BLOCKCHAIN MINTING ====================
+    let provider, signer, contractSertifikat;
+    const SERTIFIKAT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+    const SERTIFIKAT_ABI = [
+        "function terbitkanSertifikat(address _pemilik, string memory _namaUser, string memory _ipfsHash) external returns (uint256)"
+    ];
+    
+    async function initWeb3() {
+        if (!window.ethereum) {
+            console.warn("MetaMask tidak terdeteksi.");
+            return false;
+        }
+        try {
+            provider = new ethers.BrowserProvider(window.ethereum);
+            const accounts = await window.ethereum.request({ method: "eth_accounts" });
+            if (accounts.length > 0) {
+                signer = await provider.getSigner();
+                contractSertifikat = new ethers.Contract(SERTIFIKAT_ADDRESS, SERTIFIKAT_ABI, signer);
+                return true;
+            }
+        } catch (err) {
+            console.error("Gagal init Web3:", err);
+        }
+        return false;
+    }
+
+    let activeMintData = null;
+
+    async function startMinting(paymentId, userId, username) {
+        showLoading(true);
+        try {
+            // 1. Connect to wallet if not already done
+            if (!window.ethereum) {
+                alert("MetaMask tidak terdeteksi! Silakan install MetaMask.");
+                showLoading(false);
+                return;
+            }
+            
+            const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+            const adminWallet = accounts[0];
+            
+            // Init provider and contract
+            provider = new ethers.BrowserProvider(window.ethereum);
+            signer = await provider.getSigner();
+            contractSertifikat = new ethers.Contract(SERTIFIKAT_ADDRESS, SERTIFIKAT_ABI, signer);
+            
+            // 2. Upload metadata to IPFS via backend
+            const token = localStorage.getItem('token');
+            const ipfsRes = await fetch(`${API_URL}/admin/upload-ipfs`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ user_id: userId, payment_id: paymentId })
+            });
+            
+            const ipfsData = await ipfsRes.json();
+            showLoading(false);
+            
+            if (!ipfsData.success) {
+                alert("Gagal mengunggah metadata ke IPFS: " + ipfsData.message);
+                return;
+            }
+            
+            // 3. Show Modal Minting
+            activeMintData = {
+                paymentId,
+                userId,
+                username: ipfsData.metadata.name.replace("Sertifikat Kelulusan - ", ""),
+                ipfsHash: ipfsData.ipfsHash
+            };
+            
+            document.getElementById('mintUserName').innerText = activeMintData.username;
+            document.getElementById('mintIpfsHash').innerText = activeMintData.ipfsHash;
+            // Autofill wallet with active admin wallet address as custodian
+            document.getElementById('mintWalletAddress').value = adminWallet;
+            
+            document.getElementById('mintingModal').classList.add('active');
+            
+            const confirmBtn = document.getElementById('confirmMintBtn');
+            confirmBtn.onclick = () => executeMinting();
+            
+        } catch (err) {
+            showLoading(false);
+            console.error(err);
+            alert("Error: " + err.message);
+        }
+    }
+    
+    function closeMintingModal() {
+        document.getElementById('mintingModal').classList.remove('active');
+        activeMintData = null;
+    }
+    
+    function copyIpfsText() {
+        const hash = document.getElementById('mintIpfsHash').innerText;
+        navigator.clipboard.writeText(hash);
+        alert("IPFS Hash berhasil disalin!");
+    }
+    
+    async function executeMinting() {
+        const recipientWallet = document.getElementById('mintWalletAddress').value.trim();
+        if (!ethers.isAddress(recipientWallet)) {
+            alert("Alamat wallet tidak valid! Harap masukkan format 0x... hex address yang benar.");
+            return;
+        }
+        
+        showLoading(true);
+        try {
+            // Send transaction to smart contract
+            const tx = await contractSertifikat.terbitkanSertifikat(
+                recipientWallet,
+                activeMintData.username,
+                activeMintData.ipfsHash
+            );
+            
+            // Wait for transaction receipt
+            const receipt = await tx.wait();
+            
+            // Parse logs to find blockchain ID
+            let blockchainId = null;
+            if (receipt.logs && receipt.logs.length > 0) {
+                try {
+                    blockchainId = parseInt(receipt.logs[0].topics[1], 16);
+                } catch(e) {
+                    console.log("Failed to parse logs for ID:", e);
+                }
+            }
+            if (blockchainId === null || isNaN(blockchainId)) {
+                blockchainId = 1;
+            }
+            
+            // Send issue-certificate confirmation to backend
+            const token = localStorage.getItem('token');
+            const issueRes = await fetch(`${API_URL}/admin/issue-certificate`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    user_id: activeMintData.userId,
+                    payment_id: activeMintData.paymentId,
+                    transaction_hash: tx.hash,
+                    blockchain_id: blockchainId,
+                    ipfs_hash: activeMintData.ipfsHash
+                })
+            });
+            
+            showLoading(false);
+            closeMintingModal();
+            
+            if (issueRes.ok) {
+                alert("Sertifikat berhasil diterbitkan ke blockchain & IPFS!");
+                loadPayments();
+                loadCertificates();
+                loadDashboard();
+            } else {
+                alert("Sertifikat berhasil dimint, namun gagal dicatat di database.");
+            }
+        } catch (err) {
+            showLoading(false);
+            console.error("Gagal melakukan minting:", err);
+            alert("Gagal melakukan minting: " + (err.reason || err.message));
+        }
+    }
+
+    // Export functions to global scope
+    window.startMinting = startMinting;
+    window.closeMintingModal = closeMintingModal;
+    window.copyIpfsText = copyIpfsText;
+
     // Initialize
     loadPage('dashboard');
+    initWeb3();
 </script>
 </body>
 </html>

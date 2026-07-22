@@ -3,40 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Tajwid Learning</title>
+    <title>Daftar - Tajwid Learning</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Cegah browser autofill mengubah warna background input */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active,
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover,
+        select:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0px 1000px #0a0a0a inset !important;
+            -webkit-text-fill-color: #ffffff !important;
+            caret-color: #ffffff;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+        body { font-family: 'Rajdhani', sans-serif; }
+        .wallet-card {
+            border: 2px solid #2a2a2a;
+            border-radius: 0.75rem; padding: 1.1rem 1rem;
+            cursor: pointer; transition: all 0.25s;
+            background: rgba(0,0,0,0.25);
+        }
+        .wallet-card:hover { border-color: rgba(255,215,0,0.3); }
+        .wallet-card.selected-own    { border-color: #00ff88; box-shadow: 0 0 16px rgba(0,255,136,0.2); background: rgba(0,255,136,0.04); }
+        .wallet-card.selected-shared { border-color: #00cfff; box-shadow: 0 0 16px rgba(0,207,255,0.2); background: rgba(0,207,255,0.04); }
+
+        .radio-dot {
+            width: 18px; height: 18px; border-radius: 50%;
+            border: 2px solid #444; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: all 0.2s;
+        }
+        .radio-dot.active-own    { border-color: #00ff88; }
+        .radio-dot.active-shared { border-color: #00cfff; }
+        .radio-dot .dot-inner { width: 8px; height: 8px; border-radius: 50%; display: none; }
+        .radio-dot.active-own    .dot-inner { display: block; background: #00ff88; }
+        .radio-dot.active-shared .dot-inner { display: block; background: #00cfff; }
+
+        .wallet-panel { display: none; margin-top: 1rem; }
+        .wallet-panel.visible { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+        .shared-addr-box {
+            font-family: monospace; font-size: 0.78rem; word-break: break-all;
+            padding: 0.7rem 1rem; background: rgba(0,207,255,0.08);
+            border: 1px solid rgba(0,207,255,0.35); border-radius: 6px; color: #00cfff;
+        }
+
+        /* Wallet Picker Modal */
+        .wpm-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .wpm-overlay.show { opacity: 1; pointer-events: all; }
+        .wpm-box {
+            position: relative; background: #1a1a1a;
+            border: 1px solid #2e2e2e; border-radius: 1.25rem;
+            padding: 1.75rem; width: 340px; max-width: 92vw;
+            transform: translateY(20px); transition: transform 0.3s;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+        }
+        .wpm-overlay.show .wpm-box { transform: translateY(0); }
+        .wpm-close {
+            position: absolute; top: 0.85rem; right: 0.85rem;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: #2a2a2a; border: none; cursor: pointer;
+            color: #888; font-size: 0.8rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .wpm-close:hover { background: #333; color: #fff; }
+        .wpm-title { text-align: center; font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 1rem; }
+        .wpm-search {
+            display: flex; align-items: center; gap: 0.5rem;
+            background: #111; border: 1px solid #2a2a2a;
+            border-radius: 0.6rem; padding: 0.55rem 0.85rem; margin-bottom: 1rem;
+        }
+        .wpm-search input { background: transparent; border: none; outline: none; color: #aaa; font-size: 0.88rem; width: 100%; font-family:'Rajdhani',sans-serif; }
+        .wpm-search input::placeholder { color: #555; }
+        .wpm-list { display: flex; flex-direction: column; gap: 0.25rem; }
+        .wpm-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.8rem 0.85rem; border-radius: 0.65rem;
+            cursor: pointer; transition: background 0.2s;
+            border: 1px solid transparent;
+        }
+        .wpm-item:hover { background: #222; }
+        .wpm-item.avail  { border-color: rgba(255,215,0,0.2); }
+        .wpm-item.signup { border-color: rgba(99,102,241,0.2); cursor: pointer; }
+        .wpm-item-left { display: flex; align-items: center; gap: 0.85rem; }
+        .wpm-icon { width: 40px; height: 40px; border-radius: 0.55rem; background: #111; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .wpm-icon img { width: 36px; height: 36px; object-fit: contain; }
+        .wpm-name { font-size: 0.95rem; font-weight: 600; color: #e8e8e8; }
+        .badge-inst { display: flex; align-items: center; gap: 0.35rem; font-size: 0.7rem; color: #22c55e; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); border-radius: 99px; padding: 0.2rem 0.55rem; font-weight: 600; }
+        .badge-inst::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:#22c55e; }
+        .badge-signup { font-size: 0.7rem; color: #a78bfa; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.25); border-radius: 99px; padding: 0.2rem 0.55rem; font-weight: 600; }
+        .wpm-note { text-align:center; font-size:0.7rem; color:#555; margin-top:1rem; }
+
+        .mm-connect-btn {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.75rem 1rem; background: transparent;
+            border: 1px solid rgba(255,215,0,0.4); color: #ffd700;
+            border-radius: 0.5rem; cursor: pointer; transition: all 0.25s;
+            font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 0.88rem;
+            width: 100%;
+        }
+        .mm-connect-btn:hover { border-color: #ffd700; background: rgba(255,215,0,0.05); }
+        .mm-connect-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .addr-connected {
+            font-family: monospace; font-size: 0.75rem; word-break: break-all;
+            padding: 0.5rem 0.75rem; background: rgba(0,255,136,0.06);
+            border: 1px solid rgba(0,255,136,0.3); border-radius: 6px; color: #00ff88;
+            margin-top: 0.6rem; display: none;
+        }
+        .addr-connected.show { display: block; }
+    </style>
 </head>
 <body class="bg-dark-bg min-h-screen flex items-center justify-center py-12">
     <div class="cyber-card p-8 w-full max-w-2xl mx-4">
         <div class="text-center mb-6">
-            <img src="img/logo.jpeg" alt="Logo Al-Firqoh" class="mx-auto h-16 w-16 mb-3 rounded-full border-2 border-neon-gold shadow-[0_0_15px_rgba(255,215,0,0.5)]">
+            <img src="img/logo.png" alt="Logo Al-Firqoh" class="mx-auto h-16 w-16 mb-3 rounded-full border-2 border-neon-gold shadow-[0_0_15px_rgba(255,215,0,0.5)]">
             <h2 class="cyber-header text-2xl">DAFTAR AKUN</h2>
-            <p class="text-gray-400 text-sm mt-2">Daftar sebagai Siswa</p>
+            <p class="text-gray-400 text-sm mt-2 font-rajdhani">Daftar sebagai Siswa</p>
         </div>
-        
-        <form id="registerForm" enctype="multipart/form-data">
+
+        <form id="registerForm" enctype="multipart/form-data" autocomplete="off">
+
             <!-- DATA WAJIB -->
             <div class="mb-8">
-                <h3 class="text-xl font-bold text-neon-gold border-b border-neon-gold/30 pb-2 mb-4">DATA WAJIB (Harus Diisi)</h3>
+                <h3 class="text-xl font-bold text-neon-gold border-b border-neon-gold/30 pb-2 mb-4">DATA WAJIB</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm mb-2 text-gray-300">Username <span class="text-red-500">*</span></label>
-                        <input type="text" id="username" name="username" class="cyber-input w-full" required>
+                        <input type="text" id="username" name="username" class="cyber-input w-full" autocomplete="off" required>
                     </div>
                     <div>
                         <label class="block text-sm mb-2 text-gray-300">Email <span class="text-red-500">*</span></label>
-                        <input type="email" id="email" name="email" class="cyber-input w-full" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm mb-2 text-gray-300">Password <span class="text-red-500">*</span></label>
-                        <input type="password" id="password" name="password" class="cyber-input w-full" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm mb-2 text-gray-300">Konfirmasi Password <span class="text-red-500">*</span></label>
-                        <input type="password" id="confirmPassword" class="cyber-input w-full" required>
+                        <input type="email" id="email" name="email" class="cyber-input w-full" autocomplete="off" required>
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm mb-2 text-gray-300">Nama Lengkap (Sesuai KTP/Ijazah) <span class="text-red-500">*</span></label>
@@ -63,7 +171,7 @@
                     </div>
                     <div>
                         <label class="block text-sm mb-2 text-gray-400">Nomor HP/WA</label>
-                        <input type="text" id="no_hp" name="no_hp" class="cyber-input w-full" placeholder="Contoh: 08123456789">
+                        <input type="text" id="no_hp" name="no_hp" class="cyber-input w-full" placeholder="08123456789">
                     </div>
                     <div>
                         <label class="block text-sm mb-2 text-gray-400">Kota / Kabupaten</label>
@@ -71,66 +179,313 @@
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm mb-2 text-gray-400">Foto Profil</label>
-                        <input type="file" id="foto_profil" name="foto_profil" accept="image/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-neon-green/20 file:text-neon-green hover:file:bg-neon-green/30 transition-all cursor-pointer">
+                        <input type="file" id="foto_profil" name="foto_profil" accept="image/*"
+                               class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-neon-green/20 file:text-neon-green hover:file:bg-neon-green/30 transition-all cursor-pointer">
                     </div>
                 </div>
             </div>
 
-            <button type="submit" class="btn-cyber w-full py-4 text-lg font-bold tracking-wider">DAFTAR SEKARANG</button>
+            <!-- PENGATURAN WALLET -->
+            <div class="mb-8">
+                <h3 class="text-xl font-bold border-b pb-2 mb-2" style="color:#a78bfa; border-color:rgba(167,139,250,0.3)">
+                    <i class="fas fa-link mr-2"></i>PENGATURAN WALLET BLOCKCHAIN
+                </h3>
+                <p class="text-gray-400 text-sm mb-4">
+                    Wallet digunakan untuk autentikasi login dan pencatatan nilai ke blockchain. Pilih metode yang sesuai:
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                    <!-- Wallet Sendiri -->
+                    <div class="wallet-card" id="cardOwn" onclick="selectWallet('own')">
+                        <div class="flex items-start gap-3">
+                            <div class="radio-dot" id="dotOwn"><div class="dot-inner"></div></div>
+                            <div>
+                                <div class="font-bold text-sm mb-1 flex items-center gap-1" style="color:#00ff88">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" class="w-4 h-4">
+                                    Punya Wallet Sendiri (MetaMask)
+                                </div>
+                                <div class="text-xs text-gray-400">Login menggunakan tanda tangan MetaMask — lebih aman & terdesentralisasi</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wallet Umum -->
+                    <div class="wallet-card" id="cardShared" onclick="selectWallet('shared')">
+                        <div class="flex items-start gap-3">
+                            <div class="radio-dot" id="dotShared"><div class="dot-inner"></div></div>
+                            <div>
+                                <div class="font-bold text-sm mb-1" style="color:#00cfff">
+                                    🌐 Gunakan Wallet Umum
+                                </div>
+                                <div class="text-xs text-gray-400">Tidak punya MetaMask? Login cukup dengan username saja</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel: Wallet Sendiri -->
+                <div class="wallet-panel" id="panelOwn">
+                    <div class="border border-neon-gold/20 rounded-lg p-4 bg-neon-gold/[0.02]">
+                        <p class="text-xs text-gray-400 mb-3">
+                            <i class="fas fa-info-circle mr-1 text-neon-gold/60"></i>
+                            Hubungkan wallet kripto Anda untuk memverifikasi kepemilikan saat mendaftar.
+                        </p>
+                        <button type="button" class="mm-connect-btn" id="btnOpenWalletPicker" onclick="openWalletPicker()">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="" class="w-5 h-5">
+                            <span id="btnPickerText">Pilih & Hubungkan Wallet</span>
+                        </button>
+                        <div class="addr-connected" id="connectedAddrDisplay"></div>
+                        <input type="hidden" id="wallet_address" name="wallet_address" value="">
+                        <div id="mmMsg" class="text-xs mt-2 text-gray-500 font-rajdhani"></div>
+                    </div>
+                </div>
+
+                <!-- Panel: Wallet Umum -->
+                <div class="wallet-panel" id="panelShared">
+                    <div class="shared-addr-box">
+                        <div class="text-xs text-gray-400 mb-1">Wallet Umum yang akan digunakan:</div>
+                        <div>0xeeF8b2583b95624285054839F25F5A50b45Cb106</div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        <i class="fas fa-info-circle mr-1 text-cyan-500/60"></i>
+                        Dengan wallet umum, login cukup menggunakan username tanpa MetaMask.
+                    </p>
+                </div>
+
+                <input type="hidden" id="use_shared_wallet" name="use_shared_wallet" value="">
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-cyber w-full py-4 text-lg font-bold tracking-wider">
+                DAFTAR SEKARANG
+            </button>
         </form>
-        
+
         <div id="message" class="mt-4 text-center text-sm font-bold p-3 rounded hidden"></div>
-        
-        <p class="text-center text-sm text-gray-400 mt-6">
+
+        <p class="text-center text-sm text-gray-400 mt-6 font-rajdhani">
             Sudah punya akun? <a href="login.html" class="text-neon-green hover:underline">Login disini</a>
         </p>
     </div>
 
+    <!-- WALLET PICKER MODAL -->
+    <div class="wpm-overlay" id="walletPickerModal">
+        <div class="wpm-box">
+            <button class="wpm-close" onclick="closeWalletPicker()"><i class="fas fa-times"></i></button>
+            <div class="wpm-title">Pilih Wallet</div>
+            <div class="wpm-search">
+                <i class="fas fa-search" style="color:#444"></i>
+                <input type="text" placeholder="Cari dompet..." id="wpmSearch" oninput="filterWallets(this.value)" autocomplete="off">
+            </div>
+            <div class="wpm-list" id="wpmList">
+                <!-- MetaMask -->
+                <div class="wpm-item avail" id="wpm-metamask" onclick="connectWallet('metamask')">
+                    <div class="wpm-item-left">
+                        <div class="wpm-icon"><img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask"></div>
+                        <div class="wpm-name">MetaMask</div>
+                    </div>
+                    <div class="badge-inst" id="mmBadgeReg">Installed</div>
+                </div>
+                <!-- WalletConnect -->
+                <div class="wpm-item signup" onclick="goSignup('https://walletconnect.com/')">
+                    <div class="wpm-item-left">
+                        <div class="wpm-icon" style="background:#3b99fc">
+                            <svg viewBox="0 0 300 185" width="26" fill="white"><path d="M61.4 36.3c48.9-47.9 128.2-47.9 177.2 0l5.9 5.7a6 6 0 010 8.7l-20.2 19.8a3.2 3.2 0 01-4.4 0l-8.1-7.9c-34.1-33.4-89.4-33.4-123.5 0l-8.7 8.5a3.2 3.2 0 01-4.4 0L55.1 51.3a6 6 0 010-8.7l6.3-6.3zm218.7 40.8l18 17.6a6 6 0 010 8.7L204.4 196a6.3 6.3 0 01-8.8 0l-66-64.6a1.6 1.6 0 00-2.2 0l-66 64.6a6.3 6.3 0 01-8.8 0L1.9 103.4a6 6 0 010-8.7l18-17.6a6.3 6.3 0 018.8 0l66 64.6c.6.6 1.6.6 2.2 0l66-64.6a6.3 6.3 0 018.8 0l66 64.6c.6.6 1.6.6 2.2 0l66-64.6a6.3 6.3 0 018.8 0z"/></svg>
+                        </div>
+                        <div class="wpm-name">WalletConnect</div>
+                    </div>
+                    <span class="badge-signup">Daftar</span>
+                </div>
+                <!-- Coinbase -->
+                <div class="wpm-item signup" onclick="goSignup('https://www.coinbase.com/wallet')">
+                    <div class="wpm-item-left">
+                        <div class="wpm-icon" style="background:#0052ff">
+                            <svg viewBox="0 0 1024 1024" width="26" fill="white"><path d="M512 0C229.2 0 0 229.2 0 512s229.2 512 512 512 512-229.2 512-512S794.8 0 512 0zm0 928C276.9 928 96 747.1 96 512S276.9 96 512 96s416 180.9 416 416-180.9 416-416 416zm-96-544h192a32 32 0 010 64H416a32 32 0 010-64zm-32 96h256v64H384v-64zm32 96h192a32 32 0 010 64H416a32 32 0 010-64z"/></svg>
+                        </div>
+                        <div class="wpm-name">Coinbase Wallet</div>
+                    </div>
+                    <span class="badge-signup">Daftar</span>
+                </div>
+                <!-- Trust Wallet -->
+                <div class="wpm-item signup" onclick="goSignup('https://trustwallet.com/')">
+                    <div class="wpm-item-left">
+                        <div class="wpm-icon" style="background:#3375BB">
+                            <svg viewBox="0 0 48 48" width="26" fill="white"><path d="M24 4L8 10v14c0 10.5 6.8 20.3 16 23.4C33.2 44.3 40 34.5 40 24V10L24 4z"/></svg>
+                        </div>
+                        <div class="wpm-name">Trust Wallet</div>
+                    </div>
+                    <span class="badge-signup">Daftar</span>
+                </div>
+                <!-- Phantom -->
+                <div class="wpm-item signup" onclick="goSignup('https://phantom.app/')">
+                    <div class="wpm-item-left">
+                        <div class="wpm-icon" style="background:#4e44ce">
+                            <svg viewBox="0 0 128 128" width="24" fill="white"><path d="M64 0C28.65 0 0 28.65 0 64s28.65 64 64 64 64-28.65 64-64S99.35 0 64 0zm26.8 71.5c-7.1 14.6-22.2 24.5-39.4 24.5-6.8 0-13.3-1.6-19-4.4L18 99l10.3-15.8a43.1 43.1 0 01-6.3-22.5C22 38.1 41.1 19 64 19c22.9 0 42 19.1 42 42.7 0 3.3-.4 6.6-1.1 9.7l-14.1.1z"/></svg>
+                        </div>
+                        <div class="wpm-name">Phantom</div>
+                    </div>
+                    <span class="badge-signup">Daftar</span>
+                </div>
+            </div>
+            <p class="wpm-note">Non-custodial — Sistem tidak pernah menyimpan private key Anda.</p>
+        </div>
+    </div>
+
     <script>
         const API_URL = 'http://localhost:5000/api';
-        
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const password = document.getElementById('password').value;
-            const confirm = document.getElementById('confirmPassword').value;
-            const messageDiv = document.getElementById('message');
-            
-            messageDiv.classList.remove('hidden');
-            
-            if (password !== confirm) {
-                messageDiv.className = "mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500";
-                messageDiv.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Password tidak cocok!';
+        let walletChoice    = null;
+        let connectedWallet = null;
+
+        // ── Wallet picker ──────────────────────────────
+        function openWalletPicker() {
+            document.getElementById('walletPickerModal').classList.add('show');
+            document.getElementById('wpmSearch').value = '';
+            filterWallets('');
+            const badge = document.getElementById('mmBadgeReg');
+            if (window.ethereum) {
+                badge.textContent = 'Installed';
+                badge.style.color = '#22c55e';
+            } else {
+                badge.textContent = 'Not Installed';
+                badge.style.color = '#ef4444';
+                badge.style.borderColor = 'rgba(239,68,68,0.25)';
+                badge.style.background = 'rgba(239,68,68,0.08)';
+            }
+        }
+        function closeWalletPicker() {
+            document.getElementById('walletPickerModal').classList.remove('show');
+        }
+        document.getElementById('walletPickerModal').addEventListener('click', function(e) {
+            if (e.target === this) closeWalletPicker();
+        });
+        function filterWallets(q) {
+            document.querySelectorAll('.wpm-item').forEach(item => {
+                const name = item.querySelector('.wpm-name').textContent.toLowerCase();
+                item.style.display = name.includes(q.toLowerCase()) ? '' : 'none';
+            });
+        }
+        function goSignup(url) {
+            closeWalletPicker();
+            if (confirm('Anda akan diarahkan ke halaman daftar/install wallet tersebut. Lanjutkan?')) {
+                window.open(url, '_blank');
+            }
+        }
+
+        // ── Pilih tipe wallet ──────────────────────────
+        function selectWallet(type) {
+            walletChoice = type;
+            document.getElementById('cardOwn').className    = 'wallet-card';
+            document.getElementById('cardShared').className = 'wallet-card';
+            document.getElementById('dotOwn').className     = 'radio-dot';
+            document.getElementById('dotShared').className  = 'radio-dot';
+            document.getElementById('panelOwn').className   = 'wallet-panel';
+            document.getElementById('panelShared').className= 'wallet-panel';
+            if (type === 'own') {
+                document.getElementById('cardOwn').className   = 'wallet-card selected-own';
+                document.getElementById('dotOwn').className    = 'radio-dot active-own';
+                document.getElementById('panelOwn').className  = 'wallet-panel visible';
+                document.getElementById('use_shared_wallet').value = 'false';
+            } else {
+                document.getElementById('cardShared').className  = 'wallet-card selected-shared';
+                document.getElementById('dotShared').className   = 'radio-dot active-shared';
+                document.getElementById('panelShared').className = 'wallet-panel visible';
+                document.getElementById('use_shared_wallet').value = 'true';
+                document.getElementById('wallet_address').value = '';
+                connectedWallet = null;
+            }
+        }
+
+        // ── Koneksi wallet ─────────────────────────────
+        async function connectWallet(type) {
+            closeWalletPicker();
+            if (type === 'metamask') await connectMetaMask();
+        }
+
+        async function connectMetaMask() {
+            const btn  = document.getElementById('btnOpenWalletPicker');
+            const txt  = document.getElementById('btnPickerText');
+            const msg  = document.getElementById('mmMsg');
+            const disp = document.getElementById('connectedAddrDisplay');
+            if (!window.ethereum) {
+                msg.innerHTML = '<span class="text-red-400"><i class="fas fa-exclamation-triangle mr-1"></i>MetaMask belum terpasang. <a href="https://metamask.io" target="_blank" class="underline text-neon-gold">Install sekarang</a></span>';
                 return;
             }
-            
-            const formElement = document.getElementById('registerForm');
-            const formData = new FormData(formElement);
-            
+            btn.disabled = true;
+            txt.textContent = 'Menghubungkan...';
+            msg.innerHTML = '';
             try {
-                messageDiv.className = "mt-4 text-center text-sm font-bold p-3 rounded bg-yellow-900/50 text-yellow-400 border border-yellow-500";
-                messageDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses Pendaftaran...';
-                
-                const response = await fetch(`${API_URL}/auth/register`, {
-                    method: 'POST',
-                    body: formData // No Content-Type header needed, browser sets it for FormData
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    messageDiv.className = "mt-4 text-center text-sm font-bold p-3 rounded bg-green-900/50 text-green-400 border border-green-500";
-                    messageDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Registrasi berhasil! Mengalihkan ke halaman login...';
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 2000);
-                } else {
-                    messageDiv.className = "mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500";
-                    messageDiv.innerHTML = `<i class="fas fa-times-circle mr-2"></i> ${result.message}`;
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                connectedWallet = accounts[0];
+                document.getElementById('wallet_address').value = connectedWallet;
+                disp.textContent = connectedWallet;
+                disp.classList.add('show');
+                txt.textContent = '✓ ' + connectedWallet.slice(0,6) + '...' + connectedWallet.slice(-4);
+                btn.style.borderColor = '#00ff88';
+                btn.style.color = '#00ff88';
+                msg.innerHTML = '<span class="text-green-400"><i class="fas fa-check-circle mr-1"></i>MetaMask berhasil terhubung</span>';
+            } catch (err) {
+                msg.innerHTML = err.code === 4001
+                    ? '<span class="text-yellow-400">Koneksi dibatalkan.</span>'
+                    : `<span class="text-red-400">${err.message}</span>`;
+                btn.disabled = false;
+                txt.textContent = 'Pilih & Hubungkan Wallet';
+            }
+        }
+
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', (accs) => {
+                if (walletChoice === 'own' && accs.length > 0) {
+                    connectedWallet = accs[0];
+                    document.getElementById('wallet_address').value = connectedWallet;
+                    document.getElementById('connectedAddrDisplay').textContent = connectedWallet;
                 }
-            } catch (error) {
-                messageDiv.className = "mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500";
-                messageDiv.innerHTML = '<i class="fas fa-wifi mr-2"></i> Gagal terhubung ke server';
+            });
+        }
+
+        // ── Submit Form ────────────────────────────────
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msgDiv = document.getElementById('message');
+            msgDiv.classList.remove('hidden');
+
+            // Validasi wallet
+            if (!walletChoice) {
+                msgDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-yellow-900/50 text-yellow-400 border border-yellow-500';
+                msgDiv.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>Pilih pengaturan wallet terlebih dahulu!';
+                return;
+            }
+
+            if (walletChoice === 'own') {
+                if (!connectedWallet) {
+                    msgDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500';
+                    msgDiv.innerHTML = '<i class="fas fa-times-circle mr-2"></i>Hubungkan MetaMask Anda terlebih dahulu!';
+                    return;
+                }
+            }
+
+            const formData = new FormData(document.getElementById('registerForm'));
+            // Hapus wallet_address jika shared
+            if (walletChoice === 'shared') {
+                formData.delete('wallet_address');
+            }
+
+            try {
+                msgDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-yellow-900/50 text-yellow-400 border border-yellow-500';
+                msgDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Memproses Pendaftaran...';
+
+                const res    = await fetch(`${API_URL}/auth/register`, { method: 'POST', body: formData });
+                const result = await res.json();
+
+                if (result.success) {
+                    msgDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-green-900/50 text-green-400 border border-green-500';
+                    msgDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Registrasi berhasil! Mengalihkan ke halaman login...';
+                    window.location.href = 'login.html';
+                } else {
+                    msgDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500';
+                    msgDiv.innerHTML = `<i class="fas fa-times-circle mr-2"></i>${result.message}`;
+                }
+            } catch (err) {
+                msgDiv.className = 'mt-4 text-center text-sm font-bold p-3 rounded bg-red-900/50 text-red-400 border border-red-500';
+                msgDiv.innerHTML = '<i class="fas fa-wifi mr-2"></i>Gagal terhubung ke server';
             }
         });
     </script>

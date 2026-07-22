@@ -6,7 +6,12 @@
     <title>Dashboard User - Tajwid Learning</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Ethers.js untuk interaksi blockchain -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <!-- Konfigurasi blockchain Sepolia (di-generate oleh deploy.js) -->
+    <script src="js/blockchain-config.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #111827; color: #e2e8f0; overflow-x: hidden; animation: fadeIn 0.4s ease-in-out; }
@@ -219,7 +224,7 @@
             <button class="menu-btn" id="menuToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <img src="img/logo.jpeg" alt="Logo Al-Firqoh" class="h-8 w-8 rounded-full border border-green-600">
+            <img src="img/logo.png" alt="Logo Al-Firqoh" class="h-8 w-8 rounded-full border border-green-600">
             <span class="text-xl font-bold">Tajwid Learning</span>
         </div>
         <div class="flex items-center gap-4">
@@ -337,47 +342,72 @@
             <button class="profile-tab px-5 py-2 text-sm font-semibold rounded-t-lg" data-tab="edit">
                 <i class="fas fa-user-edit mr-2"></i>Edit Profil
             </button>
-            <button class="profile-tab px-5 py-2 text-sm font-semibold rounded-t-lg" data-tab="password">
-                <i class="fas fa-lock mr-2"></i>Ganti Password
-            </button>
         </div>
 
         <!-- TAB: Lihat Profil -->
         <div id="profile-tab-lihat" class="profile-tab-content">
             <div class="card">
                 <div class="flex flex-col md:flex-row gap-6 items-center md:items-start">
-                    <div class="flex-shrink-0">
-                        <div class="w-28 h-28 rounded-full border-4 border-green-500 bg-gray-800 flex items-center justify-center overflow-hidden">
+                    <!-- Foto Profil -->
+                    <div class="flex-shrink-0 flex flex-col items-center gap-2">
+                        <div class="w-32 h-32 rounded-full border-4 border-green-500 bg-gray-800 flex items-center justify-center overflow-hidden">
                             <i id="viewAvatarIcon" class="fas fa-user-circle text-6xl text-gray-500"></i>
-                            <img id="viewAvatar" src="" alt="Profile" class="w-full h-full object-cover hidden">
+                            <img id="viewAvatar" src="" alt="Foto Profil" class="w-full h-full object-cover hidden">
                         </div>
+                        <span class="text-xs text-gray-500">Foto Profil</span>
                     </div>
+
+                    <!-- Info -->
                     <div class="flex-1 w-full">
-                        <h3 id="view_nama" class="text-2xl font-bold text-white mb-1">-</h3>
-                        <p id="view_nomor_peserta" class="text-yellow-400 font-mono text-sm mb-4">Nomor Peserta: -</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <h3 id="view_nama" class="text-xl md:text-2xl font-bold text-white mb-1">-</h3>
+                        <p id="view_nomor_peserta" class="text-yellow-400 font-mono text-sm mb-5">Nomor Peserta: -</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <!-- Username -->
                             <div class="bg-black/30 rounded-lg p-3">
-                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Username</p>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                                    <i class="fas fa-user mr-1"></i> Username
+                                </p>
                                 <p id="view_username" class="font-semibold text-white">-</p>
                             </div>
+
+                            <!-- Email -->
                             <div class="bg-black/30 rounded-lg p-3">
-                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Email</p>
-                                <p id="view_email" class="font-semibold text-white">-</p>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                                    <i class="fas fa-envelope mr-1"></i> Email
+                                </p>
+                                <p id="view_email" class="font-semibold text-white break-all">-</p>
                             </div>
+
+                            <!-- Nomor HP -->
                             <div class="bg-black/30 rounded-lg p-3">
-                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Nomor HP/WA</p>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                                    <i class="fas fa-phone mr-1"></i> Nomor HP / WA
+                                </p>
                                 <p id="view_no_hp" class="font-semibold text-white">-</p>
                             </div>
+
+                            <!-- Jenis Kelamin -->
                             <div class="bg-black/30 rounded-lg p-3">
-                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Jenis Kelamin</p>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                                    <i class="fas fa-venus-mars mr-1"></i> Jenis Kelamin
+                                </p>
                                 <p id="view_jenis_kelamin" class="font-semibold text-white">-</p>
                             </div>
+
+                            <!-- Kota -->
                             <div class="bg-black/30 rounded-lg p-3">
-                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Kota / Kabupaten</p>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                                    <i class="fas fa-map-marker-alt mr-1"></i> Kota / Kabupaten
+                                </p>
                                 <p id="view_kota" class="font-semibold text-white">-</p>
                             </div>
-                            <div class="md:col-span-2 bg-black/30 rounded-lg p-3">
-                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Instansi / Sekolah / Kampus</p>
+
+                            <!-- Instansi -->
+                            <div class="bg-black/30 rounded-lg p-3">
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                                    <i class="fas fa-building mr-1"></i> Instansi / Sekolah / Kampus
+                                </p>
                                 <p id="view_instansi" class="font-semibold text-white">-</p>
                             </div>
                         </div>
@@ -446,24 +476,6 @@
             </div>
         </div>
 
-        <!-- TAB: Ganti Password -->
-        <div id="profile-tab-password" class="profile-tab-content hidden">
-            <div class="card max-w-md">
-                <h4 class="text-base font-bold text-white mb-4"><i class="fas fa-key text-yellow-400 mr-2"></i>Ganti Password</h4>
-                <form id="passwordForm">
-                    <div class="mb-4">
-                        <label class="block text-sm mb-2 text-gray-400">Password Baru</label>
-                        <input type="password" id="new_password" name="new_password" autocomplete="new-password" class="cyber-input w-full" placeholder="Minimal 6 karakter">
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-sm mb-2 text-gray-400">Konfirmasi Password Baru</label>
-                        <input type="password" id="confirm_password" autocomplete="new-password" class="cyber-input w-full" placeholder="Ulangi password baru">
-                    </div>
-                    <button type="submit" class="btn-primary w-full py-3"><i class="fas fa-lock mr-2"></i>Ganti Password</button>
-                    <div id="passwordMessage" class="mt-4 text-center text-sm font-bold p-3 rounded hidden"></div>
-                </form>
-            </div>
-        </div>
     </div>
 
 </div>
@@ -526,6 +538,81 @@
 
 <div id="loadingOverlay" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50" style="display: none;">
     <div class="text-center"><div class="loading"></div><p class="mt-3">Memproses...</p></div>
+</div>
+
+<!-- Hidden Certificate Template for Image Download -->
+<div id="certDownloadTemplate" style="position:fixed; left:-9999px; top:0; z-index:-1;">
+    <div id="certCanvas" style="width:1200px; height:850px; background:linear-gradient(145deg, #0a0e17 0%, #0d1321 30%, #111a2e 60%, #0a0e17 100%); position:relative; overflow:hidden; font-family:'Inter',sans-serif; color:#e2e8f0;">
+        <!-- Decorative corner ornaments -->
+        <div style="position:absolute; top:0; left:0; width:180px; height:180px; border-top:4px solid #d4af37; border-left:4px solid #d4af37; border-top-left-radius:0; margin:20px;"></div>
+        <div style="position:absolute; top:0; right:0; width:180px; height:180px; border-top:4px solid #d4af37; border-right:4px solid #d4af37; margin:20px;"></div>
+        <div style="position:absolute; bottom:0; left:0; width:180px; height:180px; border-bottom:4px solid #d4af37; border-left:4px solid #d4af37; margin:20px;"></div>
+        <div style="position:absolute; bottom:0; right:0; width:180px; height:180px; border-bottom:4px solid #d4af37; border-right:4px solid #d4af37; margin:20px;"></div>
+        <!-- Inner border -->
+        <div style="position:absolute; inset:35px; border:1.5px solid rgba(212,175,55,0.25); border-radius:4px;"></div>
+        <!-- Glowing orb top-right -->
+        <div style="position:absolute; top:-60px; right:-60px; width:250px; height:250px; background:radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%); border-radius:50%;"></div>
+        <!-- Glowing orb bottom-left -->
+        <div style="position:absolute; bottom:-60px; left:-60px; width:250px; height:250px; background:radial-gradient(circle, rgba(0,255,136,0.08) 0%, transparent 70%); border-radius:50%;"></div>
+        
+        <!-- Header -->
+        <div style="text-align:center; padding-top:55px;">
+            <div style="font-family:'Orbitron',sans-serif; font-size:14px; letter-spacing:8px; color:#d4af37; text-transform:uppercase; margin-bottom:6px;">Tajwid Learning</div>
+            <div style="font-family:'Orbitron',sans-serif; font-size:32px; font-weight:800; color:#ffffff; letter-spacing:3px; text-transform:uppercase; text-shadow:0 0 20px rgba(212,175,55,0.3);">SERTIFIKAT</div>
+            <div style="font-family:'Orbitron',sans-serif; font-size:13px; letter-spacing:6px; color:#d4af37; margin-top:4px;">KELULUSAN ILMU TAJWID</div>
+            <div style="width:120px; height:2px; background:linear-gradient(90deg, transparent, #d4af37, transparent); margin:16px auto 0;"></div>
+        </div>
+
+        <!-- Body -->
+        <div style="text-align:center; padding:28px 80px 0;">
+            <div style="font-size:13px; color:#9ca3af; letter-spacing:2px; text-transform:uppercase;">Diberikan kepada</div>
+            <div id="cert-nama" style="font-family:'Orbitron',sans-serif; font-size:30px; font-weight:700; color:#ffffff; margin:14px 0 6px; text-shadow:0 0 15px rgba(212,175,55,0.2);"></div>
+            <div style="width:350px; height:1.5px; background:linear-gradient(90deg, transparent, #d4af37, transparent); margin:0 auto 16px;"></div>
+            <div style="font-size:13px; color:#9ca3af; line-height:1.7; max-width:650px; margin:0 auto;">Telah menyelesaikan seluruh materi dan lulus ujian sertifikasi Ilmu Tajwid<br>pada program pembelajaran Al-Firqoh An-Najiyah</div>
+        </div>
+
+        <!-- Info Grid -->
+        <div style="display:flex; justify-content:center; gap:30px; padding:28px 80px 0;">
+            <div style="background:rgba(212,175,55,0.06); border:1px solid rgba(212,175,55,0.2); border-radius:10px; padding:14px 28px; text-align:center; min-width:175px;">
+                <div style="font-size:10px; color:#9ca3af; text-transform:uppercase; letter-spacing:2px; margin-bottom:6px;">Nomor Peserta</div>
+                <div id="cert-nomor" style="font-family:'Orbitron',sans-serif; font-size:16px; font-weight:700; color:#d4af37;"></div>
+            </div>
+            <div style="background:rgba(0,255,136,0.05); border:1px solid rgba(0,255,136,0.2); border-radius:10px; padding:14px 28px; text-align:center; min-width:175px;">
+                <div style="font-size:10px; color:#9ca3af; text-transform:uppercase; letter-spacing:2px; margin-bottom:6px;">Nilai Ujian</div>
+                <div id="cert-nilai" style="font-family:'Orbitron',sans-serif; font-size:16px; font-weight:700; color:#00ff88;"></div>
+            </div>
+            <div style="background:rgba(212,175,55,0.06); border:1px solid rgba(212,175,55,0.2); border-radius:10px; padding:14px 28px; text-align:center; min-width:175px;">
+                <div style="font-size:10px; color:#9ca3af; text-transform:uppercase; letter-spacing:2px; margin-bottom:6px;">Tanggal Kelulusan</div>
+                <div id="cert-tanggal" style="font-family:'Orbitron',sans-serif; font-size:14px; font-weight:600; color:#ffffff;"></div>
+            </div>
+        </div>
+
+        <!-- Bottom: QR + Blockchain Badge -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; padding:24px 60px 0;">
+            <!-- QR Code -->
+            <div style="display:flex; align-items:center; gap:14px;">
+                <div style="background:#ffffff; padding:6px; border-radius:8px; box-shadow:0 0 15px rgba(255,255,255,0.15);">
+                    <img id="cert-qr" src="" alt="QR" style="width:80px; height:80px; display:block;" />
+                </div>
+                <div>
+                    <div style="font-size:9px; color:#d4af37; text-transform:uppercase; letter-spacing:3px; font-weight:600;">Scan to Verify</div>
+                    <div id="cert-txhash" style="font-size:8px; color:#6b7280; font-family:monospace; margin-top:4px; max-width:200px; word-break:break-all;"></div>
+                </div>
+            </div>
+            <!-- Blockchain Badge -->
+            <div style="text-align:right;">
+                <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(0,255,136,0.08); border:1px solid rgba(0,255,136,0.3); border-radius:20px; padding:8px 18px;">
+                    <div style="width:8px; height:8px; background:#00ff88; border-radius:50%; box-shadow:0 0 8px #00ff88;"></div>
+                    <span style="font-size:10px; font-weight:700; color:#00ff88; letter-spacing:2px; text-transform:uppercase;">Verified on Blockchain</span>
+                </div>
+                <div style="font-size:9px; color:#6b7280; margin-top:6px; letter-spacing:1px;">Ethereum Sepolia Network</div>
+                <div id="cert-id" style="font-size:9px; color:#4b5563; font-family:monospace; margin-top:2px;"></div>
+            </div>
+        </div>
+
+        <!-- Footer line -->
+        <div style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); width:200px; height:1px; background:linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent);"></div>
+    </div>
 </div>
 
 <script>
@@ -867,7 +954,8 @@
             showLoading(false);
             
             if (result.success) {
-                currentBabExam = result;
+                // Simpan bab_id & bab_nama untuk keperluan blockchain recording
+                currentBabExam = { ...result, bab_id: babId, bab_nama: babNama };
                 showExamModal(`Ujian Bab: ${babNama}`, result.soal, 'bab');
             } else {
                 alert(result.message);
@@ -903,16 +991,26 @@
         
         container.innerHTML = `
             <div class="bg-green-500/10 p-3 rounded-lg mb-4">
-                <p class="text-sm">📋 Total Soal: <strong>${soal.length}</strong> soal</p>
+                <p class="text-sm">📋 Total Soal: <strong>${soal.length}</strong> soal — Pilih salah satu jawaban (A/B/C/D/E)</p>
             </div>
             ${soal.map((s, idx) => `
-                <div class="bg-black/40 p-4 rounded-lg">
+                <div class="bg-black/40 p-4 rounded-lg" id="soal-block-${s.id}">
                     <div class="flex justify-between mb-2">
                         <span class="font-bold text-sm">Soal ${idx + 1}</span>
                         <span class="badge badge-warning text-xs">Poin: ${s.poin}</span>
                     </div>
-                    <p class="mb-3 text-sm">${escapeHtml(s.pertanyaan)}</p>
-                    <textarea id="jawaban_${s.id}" class="w-full p-2 rounded bg-black/50 border border-green-500/30" rows="4" placeholder="Tulis jawaban Anda di sini..."></textarea>
+                    <p class="mb-3 text-sm leading-relaxed">${escapeHtml(s.pertanyaan)}</p>
+                    <div class="space-y-2">
+                        ${Object.entries(s.pilihan || {}).map(([key, val]) => `
+                            <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-700/50 bg-black/20 cursor-pointer hover:border-green-500/40 hover:bg-green-500/5 transition-all" 
+                                   style="user-select:none" onclick="selectPilihan(this, '${s.id}', '${key}')">
+                                <input type="radio" name="jawaban_${s.id}" value="${key}" class="mt-0.5 accent-green-500" id="radio_${s.id}_${key}">
+                                <span class="flex-1 text-sm">
+                                    <span class="font-bold text-green-400 mr-1">${key}.</span> ${escapeHtml(val || '')}
+                                </span>
+                            </label>
+                        `).join('')}
+                    </div>
                 </div>
             `).join('')}
         `;
@@ -923,15 +1021,37 @@
         submitBtn.onclick = () => submitExam(type);
     }
 
+    function selectPilihan(label, soalId, key) {
+        // Hapus highlight sebelumnya pada grup ini
+        const block = document.getElementById(`soal-block-${soalId}`);
+        block.querySelectorAll('label').forEach(l => {
+            l.style.borderColor = '';
+            l.style.background = '';
+        });
+        // Highlight pilihan aktif
+        label.style.borderColor = 'rgba(46,125,50,0.7)';
+        label.style.background = 'rgba(46,125,50,0.12)';
+    }
+
     async function submitExam(type) {
         if (!confirm('Yakin ingin mengumpulkan jawaban?')) return;
         
         const exam = type === 'bab' ? currentBabExam : currentCertExam;
         const jawaban = [];
+        let belumDijawab = 0;
         exam.soal.forEach(soal => {
-            const jawabanUser = document.getElementById(`jawaban_${soal.id}`).value;
-            if (jawabanUser.trim()) jawaban.push({ soal_id: soal.id, jawaban_user: jawabanUser });
+            const selected = document.querySelector(`input[name="jawaban_${soal.id}"]:checked`);
+            if (selected) {
+                jawaban.push({ soal_id: soal.id, jawaban_user: selected.value });
+            } else {
+                belumDijawab++;
+                jawaban.push({ soal_id: soal.id, jawaban_user: '' });
+            }
         });
+
+        if (belumDijawab > 0) {
+            if (!confirm(`Ada ${belumDijawab} soal yang belum dijawab. Tetap kumpulkan?`)) return;
+        }
         
         showLoading(true);
         try {
@@ -951,7 +1071,20 @@
             document.getElementById('examModal').classList.remove('active');
             
             showResultModal(result);
-            if (type === 'bab') { loadUjianPage(); loadDashboard(); }
+
+            if (type === 'bab') {
+                loadUjianPage();
+                loadDashboard();
+                // Jika LULUS, catat nilai ke blockchain otomatis via MetaMask
+                if (result.success && result.is_lulus) {
+                    await recordNilaiBabToBlockchain(
+                        exam.bab_id,
+                        exam.bab_nama,
+                        result.persentase,
+                        true
+                    );
+                }
+            }
             if (type === 'sertifikat' && result.is_lulus) showPaymentModal();
         } catch(e) { showLoading(false); alert('Gagal submit ujian'); }
     }
@@ -998,14 +1131,74 @@
             
             if (result.success && result.data.length > 0) {
                 container.innerHTML = result.data.map(cert => `
-                    <div class="card text-center">
-                        <i class="fas fa-certificate text-4xl md:text-5xl text-yellow-500 mb-3"></i>
-                        <h4 class="text-base md:text-lg font-bold">Sertifikat Tajwid</h4>
-                        <p class="text-xs mt-2">Diterbitkan: ${new Date(cert.issued_at).toLocaleDateString()}</p>
-                        <p class="text-xs text-gray-400">Tx: ${cert.transaction_hash?.substring(0, 15)}...</p>
-                        <a href="https://sepolia.etherscan.io/tx/${cert.transaction_hash}" target="_blank" class="inline-block mt-3 text-green-500 text-xs hover:underline">
-                            Lihat di Blockchain →
-                        </a>
+                    <div class="certificate-card bg-black/60 border-2 border-neon-gold/40 p-6 md:p-8 rounded-xl relative overflow-hidden shadow-[0_0_25px_rgba(255,215,0,0.15)] flex flex-col md:flex-row gap-6 items-center">
+                        <!-- Glowing background elements -->
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-neon-gold/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                        <div class="absolute bottom-0 left-0 w-32 h-32 bg-neon-green/5 rounded-full blur-3xl -ml-10 -mb-10"></div>
+                        
+                        <!-- Certificate Main Info -->
+                        <div class="flex-1 w-full text-left">
+                            <div class="flex items-center gap-3 mb-4">
+                                <i class="fas fa-certificate text-4xl md:text-5xl text-neon-gold drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]"></i>
+                                <div>
+                                    <h4 class="text-xl md:text-2xl font-bold font-orbitron text-white tracking-wider uppercase">Sertifikat Kelulusan</h4>
+                                    <p class="text-xs text-neon-gold tracking-widest mt-0.5">TAJWID LEARNING - AL FIRQOH AN-NAJIYAH</p>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-b border-gray-700/50 py-4 my-4">
+                                <div>
+                                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Nama Lengkap</p>
+                                    <p class="font-bold text-base md:text-lg text-white">${escapeHtml(cert.nama_lengkap || 'Tidak Diketahui')}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Nomor Peserta</p>
+                                    <p class="font-bold text-neon-gold font-mono">${escapeHtml(cert.nomor_peserta || 'Masa Tunggu')}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Nilai Ujian</p>
+                                    <p class="font-bold text-neon-green text-base md:text-lg">${cert.nilai ? cert.nilai + '%' : '-'}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Tanggal Kelulusan</p>
+                                    <p class="font-bold text-white text-sm md:text-base">${new Date(cert.issued_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2 items-center text-xs mt-3">
+                                <span class="px-3 py-1 bg-green-950/40 text-neon-green border border-neon-green/30 rounded-full font-bold tracking-wider flex items-center gap-1.5 shadow-[0_0_8px_rgba(0,255,136,0.1)]">
+                                    <span class="w-1.5 h-1.5 bg-neon-green rounded-full animate-pulse"></span>
+                                    TERVERIFIKASI BLOCKCHAIN
+                                </span>
+                                <span class="text-gray-500 font-mono">ID: #${cert.blockchain_id !== null ? cert.blockchain_id : cert.id}</span>
+                            </div>
+
+                            <!-- Download Certificate Button -->
+                            <div class="mt-4 pt-4 border-t border-gray-700/50">
+                                <button onclick="downloadCertificateImage('${escapeHtml(cert.nama_lengkap || 'Siswa')}', '${escapeHtml(cert.nomor_peserta || '-')}', '${cert.nilai || '-'}', '${cert.issued_at}', '${cert.transaction_hash || ''}', '${cert.blockchain_id !== null ? cert.blockchain_id : cert.id}')" 
+                                    class="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-bold text-sm tracking-wider transition-all duration-300"
+                                    style="background:linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05)); border:1.5px solid rgba(212,175,55,0.4); color:#d4af37;"
+                                    onmouseover="this.style.background='linear-gradient(135deg, rgba(212,175,55,0.3), rgba(212,175,55,0.1))'; this.style.boxShadow='0 0 20px rgba(212,175,55,0.2)'; this.style.transform='translateY(-1px)';"
+                                    onmouseout="this.style.background='linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05))'; this.style.boxShadow='none'; this.style.transform='translateY(0)';">
+                                    <i class="fas fa-download"></i>
+                                    <span>Download Sertifikat (PNG)</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- QR Code Section -->
+                        <div class="flex flex-col items-center justify-center p-4 bg-white/5 rounded-xl border border-neon-gold/20 backdrop-blur-sm shadow-[0_0_15px_rgba(255,215,0,0.05)] w-full md:w-auto">
+                            <div class="relative bg-white p-2 rounded-lg shadow-[0_0_10px_rgba(255,255,255,0.8)]">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent('https://sepolia.etherscan.io/tx/' + cert.transaction_hash)}&color=05070a&bgcolor=ffffff" 
+                                     alt="QR Code Verifikasi" 
+                                     class="w-28 h-28" />
+                            </div>
+                            <p class="text-[10px] text-neon-gold tracking-widest uppercase mt-3 font-semibold text-center">Scan to Verify</p>
+                            <a href="https://sepolia.etherscan.io/tx/${cert.transaction_hash}" target="_blank" 
+                               class="mt-2 text-neon-blue text-xs hover:underline flex items-center gap-1.5 transition-all hover:drop-shadow-[0_0_6px_rgba(0,242,255,0.6)]">
+                                <i class="fas fa-external-link-alt text-[10px]"></i> Lihat Transaksi
+                            </a>
+                        </div>
                     </div>
                 `).join('');
             } else {
@@ -1221,6 +1414,74 @@
                 msgDiv.innerHTML = '<i class="fas fa-wifi mr-2"></i> Gagal terhubung ke server';
             }
         });
+    }
+
+    // ==================== DOWNLOAD SERTIFIKAT IMAGE ====================
+    async function downloadCertificateImage(nama, nomor, nilai, tanggal, txHash, certId) {
+        // Show loading
+        showLoading(true);
+
+        try {
+            // Populate template
+            document.getElementById('cert-nama').textContent = nama;
+            document.getElementById('cert-nomor').textContent = nomor;
+            document.getElementById('cert-nilai').textContent = nilai + (nilai !== '-' ? '%' : '');
+            document.getElementById('cert-tanggal').textContent = new Date(tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            document.getElementById('cert-id').textContent = 'Certificate ID: #' + certId;
+
+            // QR Code
+            const qrData = txHash ? 'https://sepolia.etherscan.io/tx/' + txHash : window.location.origin + '/verify/' + certId;
+            document.getElementById('cert-qr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(qrData) + '&color=05070a&bgcolor=ffffff';
+            document.getElementById('cert-txhash').textContent = txHash ? 'TX: ' + txHash.substring(0, 20) + '...' : '';
+
+            // Wait for QR code image to load
+            const qrImg = document.getElementById('cert-qr');
+            await new Promise((resolve, reject) => {
+                if (qrImg.complete && qrImg.naturalWidth > 0) {
+                    resolve();
+                } else {
+                    qrImg.onload = resolve;
+                    qrImg.onerror = () => resolve(); // Continue even if QR fails
+                }
+            });
+
+            // Move template to visible area briefly for rendering
+            const template = document.getElementById('certDownloadTemplate');
+            template.style.left = '0px';
+            template.style.opacity = '0';
+            template.style.zIndex = '-1';
+
+            // Small delay to ensure rendering
+            await new Promise(r => setTimeout(r, 500));
+
+            // Capture with html2canvas
+            const certElement = document.getElementById('certCanvas');
+            const canvas = await html2canvas(certElement, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#0a0e17',
+                width: 1200,
+                height: 850,
+                logging: false
+            });
+
+            // Hide template again
+            template.style.left = '-9999px';
+            template.style.opacity = '1';
+
+            // Download
+            const link = document.createElement('a');
+            link.download = `Sertifikat_${nama.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+
+            showLoading(false);
+        } catch (err) {
+            console.error('Error generating certificate image:', err);
+            showLoading(false);
+            alert('Gagal generate sertifikat. Silakan coba lagi.');
+        }
     }
 
     // Initialize

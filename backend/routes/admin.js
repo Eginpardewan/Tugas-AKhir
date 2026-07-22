@@ -309,12 +309,12 @@ module.exports = (db, dbQuery) => {
     });
     
     router.post('/soal-bab', verifyAdmin, async (req, res) => {
-        const { bab_id, pertanyaan, jawaban_benar, kata_kunci, poin } = req.body;
+        const { bab_id, pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar, poin } = req.body;
         try {
             await dbQuery(
-                `INSERT INTO soal_bab (bab_id, pertanyaan, jawaban_benar, kata_kunci, poin) 
-                 VALUES (?, ?, ?, ?, ?)`,
-                [bab_id, pertanyaan, jawaban_benar, kata_kunci, poin || 10]
+                `INSERT INTO soal_bab (bab_id, pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar, poin) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [bab_id, pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar.toUpperCase(), poin || 10]
             );
             res.json({ success: true });
         } catch (err) {
@@ -323,11 +323,11 @@ module.exports = (db, dbQuery) => {
     });
     
     router.put('/soal-bab/:id', verifyAdmin, async (req, res) => {
-        const { pertanyaan, jawaban_benar, kata_kunci, poin, is_active } = req.body;
+        const { pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar, poin, is_active } = req.body;
         try {
             await dbQuery(
-                `UPDATE soal_bab SET pertanyaan = ?, jawaban_benar = ?, kata_kunci = ?, poin = ?, is_active = ? WHERE id = ?`,
-                [pertanyaan, jawaban_benar, kata_kunci, poin, is_active, req.params.id]
+                `UPDATE soal_bab SET pertanyaan = ?, pilihan_a = ?, pilihan_b = ?, pilihan_c = ?, pilihan_d = ?, pilihan_e = ?, jawaban_benar = ?, poin = ?, is_active = ? WHERE id = ?`,
+                [pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar.toUpperCase(), poin, is_active, req.params.id]
             );
             res.json({ success: true });
         } catch (err) {
@@ -355,12 +355,12 @@ module.exports = (db, dbQuery) => {
     });
     
     router.post('/soal-sertifikat', verifyAdmin, async (req, res) => {
-        const { pertanyaan, jawaban_benar, kata_kunci, poin } = req.body;
+        const { pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar, poin } = req.body;
         try {
             await dbQuery(
-                `INSERT INTO soal_sertifikat (pertanyaan, jawaban_benar, kata_kunci, poin) 
-                 VALUES (?, ?, ?, ?)`,
-                [pertanyaan, jawaban_benar, kata_kunci, poin || 10]
+                `INSERT INTO soal_sertifikat (pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar, poin) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                [pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar.toUpperCase(), poin || 10]
             );
             res.json({ success: true });
         } catch (err) {
@@ -369,11 +369,11 @@ module.exports = (db, dbQuery) => {
     });
     
     router.put('/soal-sertifikat/:id', verifyAdmin, async (req, res) => {
-        const { pertanyaan, jawaban_benar, kata_kunci, poin, is_active } = req.body;
+        const { pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar, poin, is_active } = req.body;
         try {
             await dbQuery(
-                `UPDATE soal_sertifikat SET pertanyaan = ?, jawaban_benar = ?, kata_kunci = ?, poin = ?, is_active = ? WHERE id = ?`,
-                [pertanyaan, jawaban_benar, kata_kunci, poin, is_active, req.params.id]
+                `UPDATE soal_sertifikat SET pertanyaan = ?, pilihan_a = ?, pilihan_b = ?, pilihan_c = ?, pilihan_d = ?, pilihan_e = ?, jawaban_benar = ?, poin = ?, is_active = ? WHERE id = ?`,
+                [pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar.toUpperCase(), poin, is_active, req.params.id]
             );
             res.json({ success: true });
         } catch (err) {
@@ -471,7 +471,7 @@ module.exports = (db, dbQuery) => {
     router.put('/verify-payment/:id', verifyAdmin, async (req, res) => {
         try {
             await dbQuery(
-                'UPDATE payments SET status = "verified", verified_by = ?, verified_at = NOW() WHERE id = ?',
+                'UPDATE payments SET status = "verified", verified_by = ?, verified_at = CURRENT_TIMESTAMP WHERE id = ?',
                 [req.adminId, req.params.id]
             );
             res.json({ success: true });
@@ -495,13 +495,99 @@ module.exports = (db, dbQuery) => {
         }
     });
     
+    // Helper function to upload JSON metadata to Pinata IPFS
+    const pinJSONToIPFS = async (content, name) => {
+        const jwt = process.env.PINATA_JWT;
+        if (!jwt) {
+            console.warn("⚠️ PINATA_JWT tidak ditemukan di .env, menggunakan mock IPFS hash");
+            return null;
+        }
+        
+        try {
+            const response = await fetch("https://api.pinata.cloud/pinning/pinJSONToIPFS", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${jwt}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    pinataContent: content,
+                    pinataMetadata: { name: name }
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                return `ipfs://${data.IpfsHash}`;
+            } else {
+                const errText = await response.text();
+                console.error("❌ Pinata API Error:", errText);
+                return null;
+            }
+        } catch (error) {
+            console.error("❌ Pinata Fetch Error:", error);
+            return null;
+        }
+    };
+
+    // Endpoint to compile and upload certificate metadata to IPFS
+    router.post('/upload-ipfs', verifyAdmin, async (req, res) => {
+        const { user_id, payment_id } = req.body;
+        
+        try {
+            // 1. Fetch user data
+            const users = await dbQuery('SELECT id, username, nama_lengkap, nomor_peserta FROM users WHERE id = ?', [user_id]);
+            if (users.length === 0) {
+                return res.status(404).json({ success: false, message: 'User tidak ditemukan' });
+            }
+            const user = users[0];
+            
+            // 2. Fetch exam details
+            const exams = await dbQuery(
+                'SELECT persentase, completed_at FROM hasil_sertifikat WHERE user_id = ? AND is_lulus = 1 ORDER BY completed_at DESC LIMIT 1',
+                [user_id]
+            );
+            const exam = exams[0] || null;
+            
+            // 3. Construct ERC721 metadata
+            const metadata = {
+                name: `Sertifikat Kelulusan - ${user.nama_lengkap || user.username}`,
+                description: `Sertifikat Kelulusan Resmi Tajwid Learning - Al Firqoh An-Najiyah`,
+                image: "ipfs://QmYwAPJzv5CZ11A9cu3tF98rGaM9C4L8B8QFaX6m8jEw1U", // default certificate badge icon
+                attributes: [
+                    { trait_type: "Nama Lengkap", value: user.nama_lengkap || user.username },
+                    { trait_type: "Nomor Peserta", value: user.nomor_peserta || "Masa Tunggu" },
+                    { trait_type: "Nilai Ujian", value: exam ? `${exam.persentase}%` : "80%" },
+                    { trait_type: "Tanggal Kelulusan", value: new Date(exam ? exam.completed_at : Date.now()).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}) }
+                ]
+            };
+            
+            // 4. Pin to IPFS
+            const pinataName = `sertifikat-user-${user_id}-${payment_id}`;
+            let ipfsHash = await pinJSONToIPFS(metadata, pinataName);
+            
+            // Fallback to mock hash if Pinata is not configured
+            if (!ipfsHash) {
+                const crypto = require('crypto');
+                const contentHash = crypto.createHash('sha256').update(JSON.stringify(metadata)).digest('hex');
+                ipfsHash = `ipfs://QmMock${contentHash.substring(0, 36)}`;
+                console.log(`[IPFS Fallback] Generated mock CID: ${ipfsHash}`);
+            }
+            
+            res.json({ success: true, ipfsHash, metadata });
+        } catch (err) {
+            console.error('Error uploading to IPFS:', err);
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+
     router.post('/issue-certificate', verifyAdmin, async (req, res) => {
-        const { user_id, payment_id, transaction_hash, blockchain_id } = req.body;
+        const { user_id, payment_id, transaction_hash, blockchain_id, ipfs_hash } = req.body;
         try {
             await dbQuery(
-                `INSERT INTO certificates (user_id, payment_id, transaction_hash, blockchain_id, issued_by) 
-                 VALUES (?, ?, ?, ?, ?)`,
-                [user_id, payment_id, transaction_hash, blockchain_id, req.adminId]
+                `INSERT INTO certificates (user_id, payment_id, transaction_hash, blockchain_id, certificate_hash, issued_by) 
+                 VALUES (?, ?, ?, ?, ?, ?)`,
+                [user_id, payment_id, transaction_hash, blockchain_id, ipfs_hash, req.adminId]
             );
             await dbQuery('UPDATE payments SET status = "completed" WHERE id = ?', [payment_id]);
             res.json({ success: true });

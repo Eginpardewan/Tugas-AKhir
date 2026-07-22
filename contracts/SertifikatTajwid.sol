@@ -146,10 +146,12 @@ contract SertifikatTajwid {
     }
 }
 
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
 
+// ============================================================
+// Contract 2: TajwidMateri
+// ============================================================
 contract TajwidMateri {
+
     struct Materi {
         uint256 id;
         string judul;

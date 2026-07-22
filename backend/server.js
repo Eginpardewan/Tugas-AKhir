@@ -1,22 +1,36 @@
 const express = require('express');
-const mysql = require('mysql2');
+const Database = require('better-sqlite3');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
 
-dotenv.config();
+// Load env dari folder backend
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 
-// Middleware
+// =====================================================
+// MIDDLEWARE
+// =====================================================
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve file statis (uploads)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Buat folder uploads
-const uploadDirs = ['uploads', 'uploads/videos', 'uploads/audios', 'uploads/images', 'uploads/docs', 'uploads/payments'];
+// =====================================================
+// BUAT FOLDER UPLOADS
+// =====================================================
+const uploadDirs = [
+    'uploads',
+    'uploads/videos',
+    'uploads/audios',
+    'uploads/images',
+    'uploads/docs',
+    'uploads/payments'
+];
 uploadDirs.forEach(dir => {
     const fullPath = path.join(__dirname, dir);
     if (!fs.existsSync(fullPath)) {
@@ -24,52 +38,65 @@ uploadDirs.forEach(dir => {
     }
 });
 
-// Koneksi MySQL - HARDCODE PASSWORD
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'Ars1pneg@r@',
-    database: 'tajwid_learning'
-});
+// =====================================================
+// KONEKSI SQLITE
+// =====================================================
+const dbPath = path.join(__dirname, 'database.sqlite');
+const db = new Database(dbPath);
 
-db.connect((err) => {
-    if (err) {
-        console.error('❌ Gagal koneksi ke MySQL:', err);
-        process.exit(1);
-    }
-    console.log('✅ Terhubung ke MySQL Database');
-    
-    // Auto-update database: add wallet_address to admins table if not exists
-    db.query("ALTER TABLE admins ADD COLUMN wallet_address VARCHAR(255) UNIQUE", (err) => {
-        if (err) {
-            if (err.code === 'ER_DUP_FIELDNAME') {
-                console.log("ℹ️ Kolom wallet_address sudah ada di tabel admins.");
-            } else {
-                console.error("⚠️ Gagal menambahkan kolom wallet_address:", err.message);
-            }
-        } else {
-            console.log("✅ Berhasil menambahkan kolom wallet_address ke tabel admins.");
-        }
-    });
-});
+console.log(`🗄️  Database SQLite: ${dbPath}`);
 
-// Helper query promise
-const dbQuery = (sql, params) => {
+// Inisialisasi tabel & data awal
+require('./db/init')(db);
+
+// =====================================================
+// HELPER: dbQuery — wrapper agar kompatibel dengan
+// pola async/await yang sudah ada di semua routes.
+// better-sqlite3 bersifat synchronous, wrapper ini
+// membungkusnya dalam Promise agar tidak perlu
+// mengubah semua kode routes.
+// =====================================================
+const dbQuery = (sql, params = []) => {
     return new Promise((resolve, reject) => {
-        db.query(sql, params, (err, results) => {
-            if (err) reject(err);
-            else resolve(results);
-        });
+        try {
+            const stmt = db.prepare(sql);
+            const sqlUpper = sql.trim().toUpperCase();
+
+            if (sqlUpper.startsWith('SELECT') || sqlUpper.startsWith('PRAGMA')) {
+                // SELECT → kembalikan array hasil
+                const rows = stmt.all(...params);
+                resolve(rows);
+            } else {
+                // INSERT / UPDATE / DELETE
+                const info = stmt.run(...params);
+                // Tambahkan insertId agar kompatibel dengan mysql2
+                resolve({ insertId: info.lastInsertRowid, affectedRows: info.changes });
+            }
+        } catch (err) {
+            reject(err);
+        }
     });
 };
 
-// Routes
-app.use('/api/auth', require('./routes/auth')(db, dbQuery));
-app.use('/api/admin', require('./routes/admin')(db, dbQuery));
-app.use('/api/user', require('./routes/user')(db, dbQuery));
+// =====================================================
+// CEK KONFIGURASI IPFS
+// =====================================================
+console.log('🔑 INFURA_IPFS_PROJECT_ID:', process.env.INFURA_IPFS_PROJECT_ID ? '✅ SET' : '❌ MISSING');
+console.log('🔑 INFURA_IPFS_PROJECT_SECRET:', process.env.INFURA_IPFS_PROJECT_SECRET ? '✅ SET' : '❌ MISSING');
+
+// =====================================================
+// ROUTES
+// =====================================================
+app.use('/api/auth',    require('./routes/auth')(db, dbQuery));
+app.use('/api/admin',   require('./routes/admin')(db, dbQuery));
+app.use('/api/user',    require('./routes/user')(db, dbQuery));
 app.use('/api/payment', require('./routes/payment')(db, dbQuery));
 
+// =====================================================
+// JALANKAN SERVER
+// =====================================================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
+    console.log(`📦 Mode: SQLite (tidak perlu MySQL/Workbench)`);
 });

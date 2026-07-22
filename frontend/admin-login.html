@@ -8,95 +8,477 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { font-family: 'Rajdhani', sans-serif; }
+
+        /* ── Wallet Picker Modal ── */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 50;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: all; }
+
+        .modal-box {
+            background: #1a1a1a;
+            border: 1px solid #2e2e2e;
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+            width: 340px;
+            max-width: 92vw;
+            transform: translateY(20px);
+            transition: transform 0.3s;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+        }
+        .modal-overlay.show .modal-box { transform: translateY(0); }
+
+        .modal-title {
+            text-align: center;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1rem;
+            letter-spacing: 0.03em;
+        }
+        .modal-search {
+            display: flex; align-items: center; gap: 0.5rem;
+            background: #111; border: 1px solid #2a2a2a;
+            border-radius: 0.6rem; padding: 0.55rem 0.85rem;
+            margin-bottom: 1rem;
+        }
+        .modal-search input {
+            background: transparent; border: none; outline: none;
+            color: #aaa; font-size: 0.88rem; width: 100%;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        .modal-search input::placeholder { color: #555; }
+        .modal-search i { color: #444; font-size: 0.85rem; }
+
+        .wallet-list { display: flex; flex-direction: column; gap: 0.25rem; }
+
+        .wallet-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.8rem 0.85rem;
+            border-radius: 0.65rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid transparent;
+        }
+        .wallet-item:hover { background: #222; }
+        .wallet-item.available { border-color: rgba(255,215,0,0.2); }
+        .wallet-item.unavailable { opacity: 0.4; cursor: not-allowed; }
+
+        .wallet-item-left { display: flex; align-items: center; gap: 0.85rem; }
+        .wallet-icon {
+            width: 40px; height: 40px; border-radius: 0.55rem;
+            object-fit: contain; background: #111;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .wallet-icon img { width: 36px; height: 36px; object-fit: contain; }
+        .wallet-name { font-size: 0.95rem; font-weight: 600; color: #e8e8e8; }
+
+        .badge-installed {
+            display: flex; align-items: center; gap: 0.35rem;
+            font-size: 0.7rem; color: #22c55e;
+            background: rgba(34,197,94,0.1);
+            border: 1px solid rgba(34,197,94,0.25);
+            border-radius: 99px; padding: 0.2rem 0.55rem;
+            font-weight: 600;
+        }
+        .badge-installed::before {
+            content: ''; display: inline-block;
+            width: 6px; height: 6px; border-radius: 50%;
+            background: #22c55e;
+        }
+
+        .wallet-arrow { color: #444; font-size: 0.75rem; }
+
+        .modal-note {
+            text-align: center; font-size: 0.7rem; color: #555;
+            margin-top: 1rem;
+        }
+
+        .modal-close-btn {
+            position: absolute; top: 0.85rem; right: 0.85rem;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: #2a2a2a; border: none; cursor: pointer;
+            color: #888; font-size: 0.8rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+        .modal-close-btn:hover { background: #333; color: #fff; }
+        .modal-box { position: relative; }
+
+        /* ── Signing panel ── */
+        .sign-panel {
+            display: none; animation: fadeUp 0.35s ease both;
+        }
+        .sign-panel.active { display: block; }
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(10px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        .wallet-addr-box {
+            font-family: monospace; font-size: 0.78rem; word-break: break-all;
+            padding: 0.55rem 0.8rem; background: rgba(0,0,0,0.45);
+            border: 1px solid #2a2a2a; border-radius: 6px; color: #888;
+            transition: all 0.3s; text-align: center;
+        }
+        .wallet-addr-box.linked { color: #ffd700; border-color: rgba(255,215,0,0.35); }
+
+        .btn-gold {
+            width: 100%; padding: 0.95rem;
+            background: transparent; border: 2px solid #ffd700;
+            color: #ffd700; border-radius: 0.5rem;
+            font-weight: bold; font-family: 'Orbitron', sans-serif;
+            letter-spacing: 0.08em; font-size: 0.85rem;
+            cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+        }
+        .btn-gold:hover:not(:disabled) {
+            background: #ffd700; color: #000;
+            box-shadow: 0 0 22px rgba(255,215,0,0.5); transform: translateY(-1px);
+        }
+        .btn-gold:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        .btn-connect {
+            width: 100%; padding: 0.95rem;
+            background: transparent; border: 1px solid #333;
+            color: #aaa; border-radius: 0.5rem;
+            font-weight: 600; font-family: 'Rajdhani', sans-serif;
+            font-size: 0.9rem; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+        }
+        .btn-connect:hover:not(:disabled) { border-color: #ffd700; color: #ffd700; }
+        .btn-connect:disabled { opacity: 0.4; cursor: not-allowed; }
+    </style>
 </head>
 <body class="bg-dark-bg min-h-screen flex items-center justify-center relative overflow-hidden">
-    <!-- Decorative background elements -->
-    <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-20 pointer-events-none">
+
+    <!-- Background decorations -->
+    <div class="absolute inset-0 z-0 opacity-20 pointer-events-none overflow-hidden">
         <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-neon-gold rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
-        <div class="absolute top-1/3 right-1/4 w-64 h-64 bg-neon-green rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-64 h-64 bg-yellow-700 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
     </div>
 
-    <div class="cyber-card p-10 w-full max-w-md mx-4 relative z-10 border border-neon-gold/30 shadow-[0_0_15px_rgba(255,215,0,0.2)]">
+    <!-- ===== MAIN CARD ===== -->
+    <div class="cyber-card p-10 w-full max-w-md mx-4 relative z-10 border border-neon-gold/30 shadow-[0_0_20px_rgba(255,215,0,0.15)]">
+
+        <!-- Header -->
         <div class="text-center mb-8">
-            <img src="img/logo.jpeg" alt="Logo Al-Firqoh" class="mx-auto h-20 w-20 mb-4 rounded-full border-2 border-neon-gold shadow-[0_0_15px_rgba(255,215,0,0.5)]">
+            <img src="img/logo.png" alt="Logo" class="mx-auto h-20 w-20 mb-4 rounded-full border-2 border-neon-gold shadow-[0_0_15px_rgba(255,215,0,0.5)]">
             <h2 class="cyber-header text-2xl tracking-wider">ADMIN PORTAL</h2>
-            <p class="text-gray-400 text-sm mt-2">Masuk dengan Email & Password</p>
+            <p class="text-gray-400 text-sm mt-2 font-rajdhani">Akses khusus pengelola sistem</p>
         </div>
-        
-        <form id="adminLoginForm">
-            <input type="hidden" id="role" value="admin">
-            <div class="mb-4">
-                <label class="block text-sm mb-2 text-neon-gold font-rajdhani tracking-wider">EMAIL ADMIN</label>
-                <input type="email" id="email" class="w-full bg-dark-bg border border-neon-gold/50 focus:border-neon-gold focus:shadow-[0_0_10px_rgba(255,215,0,0.3)] text-white p-3 rounded outline-none transition-all duration-300 font-rajdhani" required>
-            </div>
-            <div class="mb-6">
-                <label class="block text-sm mb-2 text-neon-gold font-rajdhani tracking-wider">PASSWORD</label>
-                <input type="password" id="password" class="w-full bg-dark-bg border border-neon-gold/50 focus:border-neon-gold focus:shadow-[0_0_10px_rgba(255,215,0,0.3)] text-white p-3 rounded outline-none transition-all duration-300 font-rajdhani" required>
-            </div>
-            
-            <button type="submit" class="w-full py-4 bg-transparent border-2 border-neon-gold text-neon-gold hover:bg-neon-gold hover:text-dark-bg font-bold rounded transition-all duration-300 flex items-center justify-center shadow-[0_0_10px_rgba(255,215,0,0.2)] hover:shadow-[0_0_20px_rgba(255,215,0,0.6)] font-orbitron tracking-wider">
-                <i class="fas fa-sign-in-alt mr-2"></i> LOGIN SEBAGAI ADMIN
+
+        <!-- ===== DEFAULT VIEW: Tombol pilih wallet ===== -->
+        <div id="viewDefault">
+            <p class="text-center text-gray-400 text-sm mb-5 font-rajdhani">
+                Pilih metode autentikasi untuk melanjutkan
+            </p>
+
+            <button class="btn-connect mb-3" id="btnOpenPicker" onclick="openWalletPicker()">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="" class="w-5 h-5">
+                Hubungkan Wallet
             </button>
-        </form>
-        
-        <div id="message" class="mt-6 text-center text-sm font-rajdhani text-lg"></div>
-        
+
+            <p class="text-center text-xs text-gray-600 font-rajdhani mt-3">
+                <i class="fas fa-shield-alt mr-1 text-neon-gold/50"></i>
+                Wallet Anda harus terdaftar sebagai administrator
+            </p>
+        </div>
+
+        <!-- ===== SIGNING VIEW ===== -->
+        <div class="sign-panel" id="viewSigning">
+            <!-- Wallet info -->
+            <div class="border border-neon-gold/20 bg-neon-gold/[0.03] rounded-xl p-5 mb-4">
+                <div class="flex items-center gap-3 mb-4">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="w-9 h-9">
+                    <div>
+                        <div class="font-bold text-neon-gold text-sm font-orbitron">MetaMask Terhubung</div>
+                        <div class="text-xs text-gray-400">Tanda tangani pesan untuk verifikasi</div>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-500 mb-1 font-rajdhani">Wallet aktif:</div>
+                <div class="wallet-addr-box linked" id="signingAddr">—</div>
+            </div>
+
+            <button class="btn-gold mb-3" id="btnSign" onclick="doAdminSign()">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="" class="w-5 h-5">
+                TANDA TANGAN DENGAN METAMASK
+            </button>
+
+            <button type="button" onclick="backToDefault()"
+                    class="w-full text-xs text-gray-500 hover:text-gray-300 py-2 transition-colors font-rajdhani">
+                <i class="fas fa-arrow-left mr-1"></i> Ganti Wallet
+            </button>
+        </div>
+
+        <!-- Message -->
+        <div id="adminMessage" class="mt-4 text-center text-sm font-rajdhani"></div>
+
+        <!-- Footer -->
         <div class="mt-8 pt-6 border-t border-gray-700/50 text-center">
-            <a href="login.html" class="text-sm text-gray-400 hover:text-white transition-colors duration-300 flex items-center justify-center">
+            <a href="login.html" class="text-sm text-gray-400 hover:text-white transition-colors flex items-center justify-center font-rajdhani">
                 <i class="fas fa-arrow-left mr-2"></i> Kembali ke Login Siswa
             </a>
         </div>
     </div>
 
+    <!-- ===== WALLET PICKER MODAL ===== -->
+    <div class="modal-overlay" id="walletModal">
+        <div class="modal-box">
+            <button class="modal-close-btn" onclick="closeWalletPicker()">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="modal-title">Hubungkan Wallet</div>
+
+            <!-- Search -->
+            <div class="modal-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Cari dompet..." id="walletSearch" oninput="filterWallets(this.value)" autocomplete="off">
+            </div>
+
+            <!-- Wallet list -->
+            <div class="wallet-list" id="walletList">
+
+                <!-- MetaMask -->
+                <div class="wallet-item available" id="itemMetaMask" onclick="selectMetaMask()">
+                    <div class="wallet-item-left">
+                        <div class="wallet-icon">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask">
+                        </div>
+                        <div class="wallet-name">MetaMask</div>
+                    </div>
+                    <div class="badge-installed" id="mmBadge">Installed</div>
+                </div>
+
+                <!-- Phantom (unavailable) -->
+                <div class="wallet-item unavailable" id="itemPhantom" title="Tidak tersedia">
+                    <div class="wallet-item-left">
+                        <div class="wallet-icon" style="background:#4e44ce;">
+                            <svg viewBox="0 0 128 128" width="26" fill="white"><path d="M64 0C28.65 0 0 28.65 0 64s28.65 64 64 64 64-28.65 64-64S99.35 0 64 0zm26.8 71.5c-7.1 14.6-22.2 24.5-39.4 24.5-6.8 0-13.3-1.6-19-4.4L18 99l10.3-15.8a43.1 43.1 0 01-6.3-22.5C22 38.1 41.1 19 64 19c22.9 0 42 19.1 42 42.7 0 3.3-.4 6.6-1.1 9.7l-14.1.1z"/></svg>
+                        </div>
+                        <div class="wallet-name">Phantom</div>
+                    </div>
+                    <i class="wallet-arrow fas fa-chevron-right"></i>
+                </div>
+
+                <!-- WalletConnect (unavailable) -->
+                <div class="wallet-item unavailable" id="itemWC" title="Tidak tersedia">
+                    <div class="wallet-item-left">
+                        <div class="wallet-icon" style="background:#3b99fc;">
+                            <svg viewBox="0 0 300 185" width="28" fill="white"><path d="M61.4 36.3c48.9-47.9 128.2-47.9 177.2 0l5.9 5.7a6 6 0 010 8.7l-20.2 19.8a3.2 3.2 0 01-4.4 0l-8.1-7.9c-34.1-33.4-89.4-33.4-123.5 0l-8.7 8.5a3.2 3.2 0 01-4.4 0L55.1 51.3a6 6 0 010-8.7l6.3-6.3zm218.7 40.8l18 17.6a6 6 0 010 8.7L204.4 196a6.3 6.3 0 01-8.8 0l-66-64.6a1.6 1.6 0 00-2.2 0l-66 64.6a6.3 6.3 0 01-8.8 0L1.9 103.4a6 6 0 010-8.7l18-17.6a6.3 6.3 0 018.8 0l66 64.6c.6.6 1.6.6 2.2 0l66-64.6a6.3 6.3 0 018.8 0l66 64.6c.6.6 1.6.6 2.2 0l66-64.6a6.3 6.3 0 018.8 0z"/></svg>
+                        </div>
+                        <div class="wallet-name">WalletConnect</div>
+                    </div>
+                    <i class="wallet-arrow fas fa-chevron-right"></i>
+                </div>
+
+                <!-- Coinbase (unavailable) -->
+                <div class="wallet-item unavailable" id="itemCoinbase" title="Tidak tersedia">
+                    <div class="wallet-item-left">
+                        <div class="wallet-icon" style="background:#0052ff;">
+                            <svg viewBox="0 0 1024 1024" width="26" fill="white"><path d="M512 0C229.2 0 0 229.2 0 512s229.2 512 512 512 512-229.2 512-512S794.8 0 512 0zm0 928C276.9 928 96 747.1 96 512S276.9 96 512 96s416 180.9 416 416-180.9 416-416 416zm-96-544h192a32 32 0 010 64H416a32 32 0 010-64zm-32 96h256v64H384v-64zm32 96h192a32 32 0 010 64H416a32 32 0 010-64z"/></svg>
+                        </div>
+                        <div class="wallet-name">Coinbase Wallet</div>
+                    </div>
+                    <i class="wallet-arrow fas fa-chevron-right"></i>
+                </div>
+
+            </div>
+
+            <p class="modal-note">Non-custodial — Sistem tidak pernah menyimpan private key Anda.</p>
+        </div>
+    </div>
+
     <script>
-        const API_URL = 'http://localhost:5000/api';
-        const loginForm = document.getElementById('adminLoginForm');
-        const messageDiv = document.getElementById('message');
-        
-        function showMessage(msg, isError = false) {
-            messageDiv.innerHTML = `<div class="${isError ? 'text-red-400' : 'text-neon-gold'}">${msg}</div>`;
+        const API_URL    = 'http://localhost:5000/api';
+        const msgDiv     = document.getElementById('adminMessage');
+        let connectedAddress = null;
+        let savedNonce       = null;
+
+        function showMsg(html, type = 'error') {
+            const c = { error:'text-red-400', warning:'text-yellow-400', info:'text-neon-gold', success:'text-green-400' };
+            msgDiv.innerHTML = `<div class="${c[type]||'text-gray-300'}">${html}</div>`;
         }
 
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const role = document.getElementById('role').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
+        // ── Wallet Picker ──────────────────────────────
+        function openWalletPicker() {
+            document.getElementById('walletModal').classList.add('show');
+            document.getElementById('walletSearch').value = '';
+            filterWallets('');
+            // Cek apakah MetaMask installed
+            const badge = document.getElementById('mmBadge');
+            if (window.ethereum) {
+                badge.textContent = 'Installed';
+                badge.style.display = '';
+            } else {
+                badge.textContent = 'Not Installed';
+                badge.style.color = '#ef4444';
+                badge.style.borderColor = 'rgba(239,68,68,0.25)';
+                badge.style.background = 'rgba(239,68,68,0.08)';
+            }
+        }
+
+        function closeWalletPicker() {
+            document.getElementById('walletModal').classList.remove('show');
+        }
+
+        // Close on backdrop click
+        document.getElementById('walletModal').addEventListener('click', function(e) {
+            if (e.target === this) closeWalletPicker();
+        });
+
+        function filterWallets(q) {
+            const items = document.querySelectorAll('.wallet-item');
+            items.forEach(item => {
+                const name = item.querySelector('.wallet-name').textContent.toLowerCase();
+                item.style.display = name.includes(q.toLowerCase()) ? '' : 'none';
+            });
+        }
+
+        // ── Select MetaMask ────────────────────────────
+        async function selectMetaMask() {
+            if (!window.ethereum) {
+                closeWalletPicker();
+                showMsg('<i class="fas fa-exclamation-triangle mr-1"></i> MetaMask belum terpasang. <a href="https://metamask.io" target="_blank" class="underline text-neon-gold">Install sekarang</a>', 'error');
+                return;
+            }
+            closeWalletPicker();
+
+            document.getElementById('btnOpenPicker').disabled = true;
+            document.getElementById('btnOpenPicker').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menghubungkan...';
+            showMsg('<i class="fas fa-spinner fa-spin mr-1"></i> Menghubungkan ke MetaMask...', 'info');
+
             try {
-                showMessage('Memproses otentikasi...');
-                
-                const response = await fetch(`${API_URL}/auth/login`, {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                connectedAddress = accounts[0];
+
+                // Tampilkan signing view
+                document.getElementById('signingAddr').textContent = connectedAddress;
+                document.getElementById('viewDefault').style.display = 'none';
+                document.getElementById('viewSigning').classList.add('active');
+                msgDiv.innerHTML = '';
+
+            } catch (err) {
+                if (err.code === 4001) {
+                    showMsg('<i class="fas fa-times mr-1"></i> Koneksi dibatalkan.', 'warning');
+                } else if (err.code === -32002) {
+                    showMsg('<i class="fas fa-info-circle mr-1"></i> MetaMask sedang menunggu. Buka ekstensi MetaMask.', 'warning');
+                } else {
+                    showMsg(`<i class="fas fa-bug mr-1"></i> ${err.message}`, 'error');
+                }
+                document.getElementById('btnOpenPicker').disabled = false;
+                document.getElementById('btnOpenPicker').innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="" class="w-5 h-5"> Hubungkan Wallet';
+            }
+        }
+
+        function backToDefault() {
+            connectedAddress = null; savedNonce = null;
+            msgDiv.innerHTML = '';
+            document.getElementById('viewSigning').classList.remove('active');
+            document.getElementById('viewDefault').style.display = '';
+            document.getElementById('btnOpenPicker').disabled = false;
+            document.getElementById('btnOpenPicker').innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="" class="w-5 h-5"> Hubungkan Wallet';
+        }
+
+        // ── Admin Sign Flow ────────────────────────────
+        async function doAdminSign() {
+            if (!connectedAddress) { showMsg('Wallet belum terhubung.', 'error'); return; }
+
+            const btn = document.getElementById('btnSign');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Meminta nonce...';
+            showMsg('<i class="fas fa-spinner fa-spin mr-1"></i> Memeriksa wallet di server...', 'info');
+
+            try {
+                // Step 1: Minta nonce (validasi wallet adalah admin)
+                const nonceRes = await fetch(`${API_URL}/auth/admin/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, role })
+                    body: JSON.stringify({ address: connectedAddress })
                 });
-                
-                const result = await response.json();
-                
+                const nonceData = await nonceRes.json();
+
+                if (!nonceData.success) {
+                    showMsg(`<i class="fas fa-times-circle mr-1"></i> ${nonceData.message}`, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="" class="w-5 h-5"> TANDA TANGAN DENGAN METAMASK';
+                    return;
+                }
+
+                savedNonce = nonceData.nonce_message;
+
+                // Step 2: Minta user sign
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menunggu tanda tangan...';
+                showMsg('<i class="fas fa-pen mr-1"></i> Silakan tanda tangani pesan di MetaMask...', 'info');
+
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [savedNonce, connectedAddress]
+                });
+
+                // Step 3: Verifikasi
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memverifikasi...';
+                showMsg('<i class="fas fa-spinner fa-spin mr-1"></i> Memverifikasi tanda tangan...', 'info');
+
+                const verifyRes = await fetch(`${API_URL}/auth/admin/verify-metamask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address: connectedAddress, signature })
+                });
+                const result = await verifyRes.json();
+
                 if (result.success) {
-                    // Simpan data login
                     localStorage.setItem('token', result.token);
                     localStorage.setItem('userRole', result.user.role);
                     localStorage.setItem('userId', result.user.id);
                     localStorage.setItem('username', result.user.username);
-                    // Hapus walletAddress jika sebelumnya ada, karena kita tidak login via Web3
                     localStorage.removeItem('walletAddress');
-                    
-                    showMessage('<span class="text-neon-green"><i class="fas fa-check-circle mr-2"></i>Otentikasi Berhasil! Mengarahkan ke Dashboard...</span>');
-                    
-                    setTimeout(() => {
-                        window.location.href = 'admin.html';
-                    }, 1000);
+
+                    btn.innerHTML = '<i class="fas fa-check"></i> BERHASIL!';
+                    showMsg('<i class="fas fa-check-circle mr-1"></i> Otentikasi berhasil! Mengalihkan ke dashboard...', 'success');
+                    setTimeout(() => { window.location.href = 'admin.html'; }, 1200);
                 } else {
-                    showMessage(`<i class="fas fa-exclamation-triangle mr-2"></i>${result.message}`, true);
+                    showMsg(`<i class="fas fa-times-circle mr-1"></i> ${result.message}`, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="" class="w-5 h-5"> TANDA TANGAN DENGAN METAMASK';
                 }
-            } catch (error) {
-                console.error("Login Error:", error);
-                showMessage('<i class="fas fa-times-circle mr-2"></i>Gagal terhubung ke server', true);
+
+            } catch (err) {
+                if (err.code === 4001) {
+                    showMsg('<i class="fas fa-times mr-1"></i> Tanda tangan dibatalkan.', 'warning');
+                } else {
+                    showMsg(`<i class="fas fa-bug mr-1"></i> ${err.message}`, 'error');
+                }
+                btn.disabled = false;
+                btn.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="" class="w-5 h-5"> TANDA TANGAN DENGAN METAMASK';
             }
-        });
+        }
+
+        // Account change listener
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', (accs) => {
+                if (document.getElementById('viewSigning').classList.contains('active')) {
+                    if (accs.length > 0) {
+                        connectedAddress = accs[0];
+                        document.getElementById('signingAddr').textContent = connectedAddress;
+                        savedNonce = null;
+                        msgDiv.innerHTML = '';
+                    } else {
+                        backToDefault();
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>

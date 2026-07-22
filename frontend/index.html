@@ -21,7 +21,7 @@
         <div class="container mx-auto px-4 py-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <img src="img/logo.jpeg" alt="Logo Al-Firqoh" class="h-8 w-8 rounded-full border border-neon-gold shadow-[0_0_10px_rgba(255,215,0,0.5)]">
+                    <img src="img/logo.png" alt="Logo Al-Firqoh" class="h-8 w-8 rounded-full border border-neon-gold shadow-[0_0_10px_rgba(255,215,0,0.5)]">
                     <span class="cyber-header text-lg">TAJWID LEARNING</span>
                 </div>
                 <div id="authButtons" class="flex gap-3">
@@ -39,7 +39,7 @@
     <section class="relative z-10 min-h-screen flex items-center">
         <div class="container mx-auto px-4 text-center">
             <div class="mb-8">
-                <img src="img/logo.jpeg" alt="Logo Al-Firqoh" class="mx-auto h-24 w-24 rounded-full border-2 border-neon-gold shadow-[0_0_20px_rgba(255,215,0,0.5)]">
+                <img src="img/logo.png" alt="Logo Al-Firqoh" class="mx-auto h-24 w-24 rounded-full border-2 border-neon-gold shadow-[0_0_20px_rgba(255,215,0,0.5)]">
             </div>
             <div class="arabic-text text-3xl mb-4">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
             <h1 class="text-5xl md:text-7xl font-bold mb-4">
@@ -55,6 +55,42 @@
             <div class="flex gap-4 justify-center">
                 <a href="register.html" class="btn-cyber px-8 py-4 text-lg">Mulai Belajar</a>
                 <a href="#fitur" class="btn-cyber-purple px-8 py-4 text-lg">Pelajari Lebih</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Public Verification Section -->
+    <section id="verifikasi" class="relative z-10 py-16 bg-black/30 border-y border-neon-green/20">
+        <div class="container mx-auto px-4 max-w-3xl">
+            <div class="cyber-card p-6 md:p-8 text-center relative overflow-hidden shadow-[0_0_30px_rgba(0,255,136,0.05)] border-neon-green/30">
+                <div class="absolute -top-10 -left-10 w-24 h-24 bg-neon-green/10 rounded-full blur-2xl"></div>
+                <div class="absolute -bottom-10 -right-10 w-24 h-24 bg-neon-blue/10 rounded-full blur-2xl"></div>
+                
+                <h2 class="cyber-header text-2xl md:text-3xl font-bold mb-2">🔍 Verifikasi Sertifikat</h2>
+                <p class="text-sm text-gray-400 mb-6">Masukkan Kode Transaksi Blockchain (Tx Hash) atau Nomor Peserta untuk memeriksa keaslian sertifikat.</p>
+                
+                <div class="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto mb-4">
+                    <input type="text" id="verificationInput" placeholder="Contoh: 0x... atau Nomor Peserta" class="cyber-input flex-grow text-sm">
+                    <button onclick="verifyCertificatePublic()" class="btn-cyber px-6 py-3 text-sm flex items-center justify-center gap-2">
+                        <i class="fas fa-search"></i> Periksa
+                    </button>
+                </div>
+                
+                <!-- Result Area -->
+                <div id="verificationResult" class="mt-8 hidden text-left">
+                    <!-- Loading State -->
+                    <div id="verifLoading" class="hidden text-center py-4">
+                        <div class="inline-block w-8 h-8 border-4 border-neon-green/30 border-t-neon-green rounded-full animate-spin"></div>
+                        <p class="text-xs text-gray-400 mt-2">Memeriksa database & smart contract...</p>
+                    </div>
+                    <!-- Error State -->
+                    <div id="verifError" class="hidden bg-red-950/30 border border-red-500/30 p-4 rounded-lg text-center">
+                        <i class="fas fa-exclamation-triangle text-neon-pink text-3xl mb-2"></i>
+                        <p id="verifErrorMessage" class="text-sm text-gray-300"></p>
+                    </div>
+                    <!-- Success State -->
+                    <div id="verifSuccess" class="hidden"></div>
+                </div>
             </div>
         </div>
     </section>
@@ -126,5 +162,103 @@
     </section>
 
     <script src="js/app.js"></script>
+    <script>
+        async function verifyCertificatePublic() {
+            const input = document.getElementById('verificationInput').value.trim();
+            const resultArea = document.getElementById('verificationResult');
+            const loading = document.getElementById('verifLoading');
+            const errorArea = document.getElementById('verifError');
+            const successArea = document.getElementById('verifSuccess');
+            
+            if (!input) {
+                alert('Silakan masukkan Tx Hash atau Nomor Peserta terlebih dahulu!');
+                return;
+            }
+            
+            // Show result area and loading state
+            resultArea.classList.remove('hidden');
+            loading.classList.remove('hidden');
+            errorArea.classList.add('hidden');
+            successArea.classList.add('hidden');
+            
+            try {
+                const response = await fetch(`http://localhost:5000/api/user/public/verify-certificate/${encodeURIComponent(input)}`);
+                const result = await response.json();
+                
+                loading.classList.add('hidden');
+                
+                if (result.success) {
+                    const cert = result.data;
+                    successArea.innerHTML = `
+                        <div class="certificate-card bg-black/60 border-2 border-neon-gold/40 p-6 rounded-xl relative overflow-hidden shadow-[0_0_25px_rgba(255,215,0,0.15)] flex flex-col md:flex-row gap-6 items-center">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-neon-gold/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                            
+                            <div class="flex-1 w-full text-left">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <i class="fas fa-certificate text-3xl text-neon-gold drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]"></i>
+                                    <div>
+                                        <h4 class="text-lg font-bold font-orbitron text-white tracking-wider uppercase">Sertifikat Kelulusan</h4>
+                                        <p class="text-[10px] text-neon-gold tracking-widest mt-0.5">TAJWID LEARNING - AL FIRQOH AN-NAJIYAH</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-b border-gray-700/50 py-3 my-3 text-sm">
+                                    <div>
+                                        <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">Nama Lengkap</p>
+                                        <p class="font-bold text-white">${escapeHtml(cert.nama_lengkap || 'Tidak Diketahui')}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">Nomor Peserta</p>
+                                        <p class="font-bold text-neon-gold font-mono">${escapeHtml(cert.nomor_peserta || 'Masa Tunggu')}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">Nilai Ujian</p>
+                                        <p class="font-bold text-neon-green">${cert.nilai ? cert.nilai + '%' : '-'}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">Tanggal Kelulusan</p>
+                                        <p class="font-bold text-white">${new Date(cert.issued_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-wrap gap-2 items-center text-xs mt-3">
+                                    <span class="px-2.5 py-0.5 bg-green-950/40 text-neon-green border border-neon-green/30 rounded-full font-bold tracking-wider flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 bg-neon-green rounded-full animate-pulse"></span>
+                                        TERVERIFIKASI BLOCKCHAIN
+                                    </span>
+                                    <span class="text-gray-500 font-mono">ID: #${cert.blockchain_id !== null ? cert.blockchain_id : cert.id}</span>
+                                </div>
+                            </div>
+
+                            <!-- QR Code Section -->
+                            <div class="flex flex-col items-center justify-center p-3 bg-white/5 rounded-xl border border-neon-gold/20 backdrop-blur-sm w-full md:w-auto">
+                                <div class="bg-white p-1 rounded">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://sepolia.etherscan.io/tx/' + cert.transaction_hash)}&color=05070a&bgcolor=ffffff" 
+                                         alt="QR Code" class="w-24 h-24" />
+                                </div>
+                                <a href="https://sepolia.etherscan.io/tx/${cert.transaction_hash}" target="_blank" 
+                                   class="mt-2 text-neon-blue text-xs hover:underline flex items-center gap-1">
+                                    <i class="fas fa-external-link-alt text-[9px]"></i> Lihat Transaksi
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    successArea.classList.remove('hidden');
+                } else {
+                    document.getElementById('verifErrorMessage').innerText = result.message || 'Gagal memproses verifikasi';
+                    errorArea.classList.remove('hidden');
+                }
+            } catch (err) {
+                loading.classList.add('hidden');
+                document.getElementById('verifErrorMessage').innerText = 'Gagal menghubungi server. Pastikan server berjalan.';
+                errorArea.classList.remove('hidden');
+            }
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m);
+        }
+    </script>
 </body>
 </html>

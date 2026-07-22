@@ -14,23 +14,16 @@ async function main() {
   }
 
   // ==============================
-  // SETUP PROVIDER (ETHERS V6)
+  // SETUP PROVIDER (ETHERS V5)
   // ==============================
-  const provider = new ethers.JsonRpcProvider(
-    `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
-  );
+  const [deployer] = await ethers.getSigners();
 
-  // ==============================
-  // SETUP WALLET (MNEMONIC)
-  // ==============================
-  const wallet = ethers.Wallet.fromPhrase(process.env.SEPOLIA_MNEMONIC).connect(provider);
+  console.log("👤 Alamat Deployer :", deployer.address);
 
-  console.log("👤 Alamat Deployer :", wallet.address);
+  const balance = await deployer.getBalance();
+  console.log("💰 Saldo Deployer  :", ethers.utils.formatEther(balance), "ETH");
 
-  const balance = await provider.getBalance(wallet.address);
-  console.log("💰 Saldo Deployer  :", ethers.formatEther(balance), "ETH");
-
-  if (balance < ethers.parseEther("0.01")) {
+  if (balance.lt(ethers.utils.parseEther("0.01"))) {
     console.warn("⚠️  Saldo rendah, gas mungkin tidak cukup!");
   }
 
@@ -39,19 +32,11 @@ async function main() {
   // ==============================
   console.log("\n⏳ Menyiapkan kontrak SertifikatTajwid...");
 
-  // ⚠️ PASTIKAN NAMA SESUAI CONTRACT SOLIDITY
-  const Contract = await ethers.getContractFactory("SertifikatTajwid", wallet);
-
+  const Contract = await ethers.getContractFactory("SertifikatTajwid");
   const contract = await Contract.deploy();
+  await contract.deployed();
 
-  const tx = contract.deploymentTransaction();
-
-  console.log("📨 Hash Transaksi Deploy :", tx.hash);
-  console.log("⏳ Menunggu konfirmasi deployment...");
-
-  await contract.waitForDeployment();
-
-  const contractAddress = await contract.getAddress();
+  const contractAddress = contract.address;
 
   // ==============================
   // OUTPUT HASIL
@@ -62,21 +47,42 @@ async function main() {
   console.log("🔗 Chain ID         : 11155111");
 
   // ==============================
-  // SIMPAN ADDRESS
+  // SIMPAN ADDRESS KE FILE
   // ==============================
   const filePath = path.join(__dirname, "..", "deployed-address.txt");
-
   fs.writeFileSync(filePath, contractAddress, "utf8");
-
   console.log("💾 Alamat kontrak disimpan ke deployed-address.txt");
+
+  // ==============================
+  // UPDATE blockchain-config.js
+  // ==============================
+  const configPath = path.join(__dirname, "..", "frontend", "js", "blockchain-config.js");
+  const configContent = `// ============================================================
+// BLOCKCHAIN CONFIG — AUTO GENERATED oleh deploy.js
+// Jalankan: npx hardhat run deployment/deploy.js --network sepolia
+// ============================================================
+const BLOCKCHAIN_CONFIG = {
+    network: 'sepolia',
+    rpcUrl: 'https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}',
+    chainId: '0xaa36a7',        // 11155111 dalam hex
+    chainIdDecimal: 11155111,
+    networkName: 'Sepolia Testnet',
+    currencySymbol: 'ETH',
+    contractAddress: '${contractAddress}',
+    sharedWalletAddress: '0xeeF8b2583b95624285054839F25F5A50b45Cb106',
+    explorerUrl: 'https://sepolia.etherscan.io',
+    explorerTxUrl: 'https://sepolia.etherscan.io/tx/'
+};
+`;
+  fs.writeFileSync(configPath, configContent, "utf8");
+  console.log("💾 Konfigurasi blockchain disimpan ke frontend/js/blockchain-config.js");
 
   // ==============================
   // VALIDASI BYTECODE
   // ==============================
-  const code = await provider.getCode(contractAddress);
-
+  const code = await deployer.provider.getCode(contractAddress);
   console.log(
-    "📦 Bytecode Terpasang :",
+    "\n📦 Bytecode Terpasang :",
     code !== "0x" ? "✅ YA" : "❌ TIDAK"
   );
 
