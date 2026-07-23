@@ -54,7 +54,7 @@ module.exports = (db, dbQuery) => {
         try {
             // Cek apakah user sudah lulus ujian sertifikat
             const hasilSertifikat = await dbQuery(
-                'SELECT * FROM hasil_sertifikat WHERE user_id = ? AND is_lulus = 1 ORDER BY completed_at DESC LIMIT 1',
+                'SELECT * FROM hasil_sertifikat WHERE user_id = ? AND is_lulus = 1 ORDER BY persentase DESC LIMIT 1',
                 [req.userId]
             );
             

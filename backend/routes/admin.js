@@ -477,7 +477,7 @@ module.exports = (db, dbQuery) => {
             const users = await dbQuery(`
                 SELECT id, username, email, nama_lengkap, jenis_kelamin, no_hp, instansi, kota, 
                        foto_profil, nomor_peserta, created_at
-                FROM users ORDER BY created_at DESC
+                FROM users ORDER BY id ASC
             `);
             res.json({ success: true, data: users });
         } catch (err) {
@@ -490,14 +490,12 @@ module.exports = (db, dbQuery) => {
             const users = await dbQuery(`
                 SELECT u.id, u.username, u.email, u.nama_lengkap, u.jenis_kelamin, u.no_hp, 
                        u.instansi, u.kota, u.foto_profil, u.nomor_peserta, u.created_at,
-                       COUNT(DISTINCT nb.bab_id) as bab_lulus,
-                       (SELECT persentase FROM hasil_sertifikat WHERE user_id = u.id AND is_lulus = 1 ORDER BY completed_at DESC LIMIT 1) as nilai_sertifikat,
-                       (SELECT completed_at FROM hasil_sertifikat WHERE user_id = u.id AND is_lulus = 1 ORDER BY completed_at DESC LIMIT 1) as tanggal_lulus,
+                       (SELECT COUNT(DISTINCT bab_id) FROM nilai_bab WHERE user_id = u.id AND is_lulus = 1) as bab_lulus,
+                       (SELECT persentase FROM hasil_sertifikat WHERE user_id = u.id AND is_lulus = 1 ORDER BY persentase DESC LIMIT 1) as nilai_sertifikat,
+                       (SELECT completed_at FROM hasil_sertifikat WHERE user_id = u.id AND is_lulus = 1 ORDER BY persentase DESC LIMIT 1) as tanggal_lulus,
                        (SELECT COUNT(*) FROM certificates WHERE user_id = u.id) as total_sertifikat
                 FROM users u
-                LEFT JOIN nilai_bab nb ON nb.user_id = u.id AND nb.is_lulus = 1
                 WHERE u.id = ?
-                GROUP BY u.id
             `, [req.params.id]);
             if (users.length === 0) return res.status(404).json({ success: false, message: 'User tidak ditemukan' });
             res.json({ success: true, data: users[0] });
@@ -625,7 +623,7 @@ module.exports = (db, dbQuery) => {
             
             // 2. Fetch exam details
             const exams = await dbQuery(
-                'SELECT persentase, completed_at FROM hasil_sertifikat WHERE user_id = ? AND is_lulus = 1 ORDER BY completed_at DESC LIMIT 1',
+                'SELECT persentase, completed_at FROM hasil_sertifikat WHERE user_id = ? AND is_lulus = 1 ORDER BY persentase DESC LIMIT 1',
                 [user_id]
             );
             const exam = exams[0] || null;

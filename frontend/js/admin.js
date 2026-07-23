@@ -9,7 +9,7 @@ let selectedUser = null;
 // Initialize admin dashboard
 async function initAdmin() {
     // Check if user is admin
-    const role = localStorage.getItem("userRole");
+    const role = localStorage.getItem('adminRole');
     if (role !== "admin") {
         window.location.href = "index.html";
         return;
@@ -27,7 +27,7 @@ async function initAdmin() {
 // Load dashboard data
 async function loadDashboardData() {
     try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('adminToken');
         const response = await fetch("http://localhost:5000/api/admin/stats", {
             headers: { "Authorization": `Bearer ${token}` }
         });
@@ -47,7 +47,7 @@ async function loadDashboardData() {
 // Load users list
 async function loadUsers() {
     try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('adminToken');
         const response = await fetch("http://localhost:5000/api/admin/users", {
             headers: { "Authorization": `Bearer ${token}` }
         });
@@ -88,7 +88,7 @@ function renderUsersTable() {
 // Load payments
 async function loadPayments() {
     try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('adminToken');
         const response = await fetch("http://localhost:5000/api/admin/payments", {
             headers: { "Authorization": `Bearer ${token}` }
         });
@@ -154,7 +154,7 @@ async function viewUserDetail(userId) {
 // Load user exam results
 async function loadUserExamResults(userId) {
     try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('adminToken');
         const response = await fetch(`http://localhost:5000/api/admin/user-exams/${userId}`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
@@ -207,7 +207,7 @@ function renderExamResults(exams) {
 // Verify payment
 async function verifyPayment(paymentId) {
     try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('adminToken');
         const response = await fetch(`http://localhost:5000/api/admin/verify-payment/${paymentId}`, {
             method: "PUT",
             headers: { "Authorization": `Bearer ${token}` }
@@ -249,7 +249,7 @@ async function uploadToBlockchain(paymentId) {
         
         if (result) {
             // Update backend
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem('adminToken');
             await fetch(`http://localhost:5000/api/admin/certificate-issued/${paymentId}`, {
                 method: "PUT",
                 headers: {
@@ -285,7 +285,7 @@ async function addMateri(event) {
     };
     
     try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('adminToken');
         const response = await fetch("http://localhost:5000/api/admin/materi", {
             method: "POST",
             headers: {
@@ -325,7 +325,7 @@ async function addSoal(event) {
     };
     
     try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('adminToken');
         const response = await fetch("http://localhost:5000/api/admin/soal", {
             method: "POST",
             headers: {

@@ -323,8 +323,8 @@ module.exports = (db, dbQuery, blockchain = {}) => {
             
             const nilaiMap = {};
             userNilai.forEach(n => {
-                // If there are multiple entries (retakes), we keep the one that passed or the last one
-                if (!nilaiMap[n.bab_id] || n.is_lulus) {
+                // Keep the entry with the highest persentase
+                if (!nilaiMap[n.bab_id] || n.persentase > nilaiMap[n.bab_id].persentase) {
                     nilaiMap[n.bab_id] = { persentase: n.persentase, is_lulus: n.is_lulus, transaction_hash: n.transaction_hash };
                 }
             });
@@ -368,7 +368,7 @@ module.exports = (db, dbQuery, blockchain = {}) => {
             
             const isEligible = userNilai[0].lulus === allBabs[0].total && allBabs[0].total > 0;
             const existingExam = await dbQuery(
-                'SELECT * FROM hasil_sertifikat WHERE user_id = ? ORDER BY completed_at DESC LIMIT 1',
+                'SELECT * FROM hasil_sertifikat WHERE user_id = ? ORDER BY persentase DESC LIMIT 1',
                 [req.userId]
             );
             
@@ -514,7 +514,7 @@ module.exports = (db, dbQuery, blockchain = {}) => {
     router.get('/certificate-result', verifyUser, async (req, res) => {
         try {
             const result = await dbQuery(
-                'SELECT * FROM hasil_sertifikat WHERE user_id = ? ORDER BY completed_at DESC LIMIT 1',
+                'SELECT * FROM hasil_sertifikat WHERE user_id = ? ORDER BY persentase DESC LIMIT 1',
                 [req.userId]
             );
             res.json({ success: true, data: result[0] || null });

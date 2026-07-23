@@ -303,7 +303,13 @@
     </div>
 
     <div id="page-users" class="page-content hidden">
-        <h2 class="text-2xl font-bold mb-4">👥 Kelola User</h2>
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
+            <h2 class="text-2xl font-bold">👥 Kelola User</h2>
+            <div class="relative w-full md:w-64">
+                <input type="text" id="searchUser" class="w-full p-2 pl-8 rounded bg-black/50 border border-green-500/30 text-sm focus:border-green-500 outline-none" placeholder="Cari nama, username, email...">
+                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i>
+            </div>
+        </div>
         <div class="card overflow-x-auto">
             <table class="table">
                 <thead><tr><th>ID</th><th>Username</th><th>Nama Lengkap</th><th>Jenis Kelamin</th><th>Email</th><th>Terdaftar</th><th>Aksi</th></tr></thead>
@@ -643,16 +649,16 @@
 
     // ==================== AUTH ====================
     (function() {
-        const token = localStorage.getItem('token');
-        const role = localStorage.getItem('userRole');
+        const token = localStorage.getItem('adminToken');
+        const role = localStorage.getItem('adminRole');
         if (!token || role !== 'admin') {
             window.location.href = 'login.html';
         }
-        document.getElementById('adminName').innerText = localStorage.getItem('username') || 'Admin';
+        document.getElementById('adminName').innerText = localStorage.getItem('adminUsername') || 'Admin';
     })();
 
     document.getElementById('logoutBtn').onclick = () => {
-        localStorage.clear();
+        localStorage.removeItem('adminToken'); localStorage.removeItem('adminRole'); localStorage.removeItem('adminUsername'); localStorage.removeItem('adminId');;
         window.location.href = 'login.html';
     };
 
@@ -681,7 +687,7 @@
     // ==================== DASHBOARD ====================
     async function loadDashboard() {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('adminToken');
             const res = await fetch(`${API_URL}/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
             if (data.success) {
@@ -696,7 +702,7 @@
     // ==================== BAB ====================
     async function loadBabs() {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('adminToken');
             const res = await fetch(`${API_URL}/admin/babs`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
             if (data.success) {
@@ -749,7 +755,7 @@
     }
 
     async function saveBabOrder() {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         const orders = currentBabs.map(bab => ({ id: bab.id, urutan: bab.urutan }));
         showLoading(true);
         try {
@@ -775,7 +781,7 @@
 
     async function editBab(id) {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('adminToken');
             const res = await fetch(`${API_URL}/admin/babs`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
             if (data.success) {
@@ -802,7 +808,7 @@
 
     document.getElementById('babForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         const id = document.getElementById('babId').value;
         const data = { nama: document.getElementById('babNama').value, deskripsi: document.getElementById('babDeskripsi').value, urutan: parseInt(document.getElementById('babUrutan').value) };
         const url = id ? `${API_URL}/admin/bab/${id}` : `${API_URL}/admin/bab`;
@@ -824,7 +830,7 @@
 
     async function deleteBab(id) {
         if (!confirm('Yakin ingin menghapus bab ini?')) return;
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         showLoading(true);
         try {
             const res = await fetch(`${API_URL}/admin/bab/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
@@ -836,7 +842,7 @@
 
     // ==================== MATERI ====================
     async function loadBabSelect() {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         const res = await fetch(`${API_URL}/admin/babs`, { headers: { 'Authorization': `Bearer ${token}` } });
         const data = await res.json();
         if (data.success) {
@@ -847,7 +853,7 @@
     }
 
     async function loadMateriByBab() {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         const filterBab = document.getElementById('filterBabMateri').value;
         showLoading(true);
         try {
@@ -891,7 +897,7 @@
 
     async function editMateri(id) {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('adminToken');
             const res = await fetch(`${API_URL}/admin/materis`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
             if (data.success) {
@@ -937,7 +943,7 @@
 
     document.getElementById('materiForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         const materiId = document.getElementById('materiId').value;
         const babId = document.getElementById('materiBabId').value;
         if (!babId) { alert('Pilih bab terlebih dahulu!'); return; }
@@ -971,7 +977,7 @@
 
     async function deleteMateri(id) {
         if (!confirm('Yakin ingin menghapus materi ini?')) return;
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         showLoading(true);
         try {
             const res = await fetch(`${API_URL}/admin/materi/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
@@ -983,7 +989,7 @@
     // ==================== VIEW MATERI ====================
     async function viewMateri(id) {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('adminToken');
             const res = await fetch(`${API_URL}/admin/materis`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
             if (data.success) {
@@ -1021,7 +1027,7 @@
 
     // ==================== SOAL BAB (Dengan Edit) ====================
     async function loadBabSelectForSoal() {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         const res = await fetch(`${API_URL}/admin/babs`, { headers: { 'Authorization': `Bearer ${token}` } });
         const data = await res.json();
         if (data.success) {
@@ -1038,7 +1044,7 @@
     }
 
     async function loadSoalBab() {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         const filterEl = document.getElementById('filterBabSoal');
         const babId = filterEl ? filterEl.value : '';
         const url = babId ? `${API_URL}/admin/soal-bab?bab_id=${babId}` : `${API_URL}/admin/soal-bab`;
@@ -1080,7 +1086,7 @@
 
     async function editSoalBab(id) {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('adminToken');
             const res = await fetch(`${API_URL}/admin/soal-bab`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
             if (data.success) {
@@ -1116,7 +1122,7 @@
 
     document.getElementById('soalBabForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         const id = document.getElementById('soalBabId').value;
         const data = { 
             bab_id: document.getElementById('soalBabBabId').value, 
@@ -1149,7 +1155,7 @@
 
     async function deleteSoalBab(id) {
         if (!confirm('Yakin ingin menghapus soal ini?')) return;
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         showLoading(true);
         try {
             const res = await fetch(`${API_URL}/admin/soal-bab/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
@@ -1161,7 +1167,7 @@
 
     // ==================== SOAL SERTIFIKAT (Dengan Edit) ====================
     async function loadSoalSertifikat() {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         const res = await fetch(`${API_URL}/admin/soal-sertifikat`, { headers: { 'Authorization': `Bearer ${token}` } });
         const data = await res.json();
         if (data.success) {
@@ -1199,7 +1205,7 @@
 
     async function editSoalSertifikat(id) {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('adminToken');
             const res = await fetch(`${API_URL}/admin/soal-sertifikat`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
             if (data.success) {
@@ -1231,7 +1237,7 @@
 
     document.getElementById('soalSertifikatForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         const id = document.getElementById('soalSertifikatId').value;
         const data = { 
             pertanyaan: document.getElementById('soalSertifikatPertanyaan').value,
@@ -1263,7 +1269,7 @@
 
     async function deleteSoalSertifikat(id) {
         if (!confirm('Yakin ingin menghapus soal ini?')) return;
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         showLoading(true);
         try {
             const res = await fetch(`${API_URL}/admin/soal-sertifikat/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
@@ -1274,46 +1280,70 @@
     }
 
     // ==================== USER ====================
+    let allUsersData = [];
+
     async function loadUsers() {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         try {
             const res = await fetch(`${API_URL}/admin/users`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
             if (data.success && data.data) {
-                const tbody = document.getElementById('usersTableBody');
-                if (tbody) {
-                    tbody.innerHTML = data.data.map(u => `
-                        <tr>
-                            <td>${u.id}</td>
-                            <td>${escapeHtml(u.username)}</td>
-                            <td>${escapeHtml(u.nama_lengkap || '-')}</td>
-                            <td>
-                                <span class="badge ${u.jenis_kelamin === 'Laki-laki' ? 'badge-info' : u.jenis_kelamin === 'Perempuan' ? 'badge-warning' : ''}">
-                                    ${u.jenis_kelamin ? (u.jenis_kelamin === 'Laki-laki' ? '♂ Laki-laki' : '♀ Perempuan') : '-'}
-                                </span>
-                            </td>
-                            <td>${escapeHtml(u.email)}</td>
-                            <td>${new Date(u.created_at).toLocaleDateString('id-ID')}</td>
-                            <td>
-                                <button onclick="viewUserDetail(${u.id})" class="btn-info text-xs">
-                                    <i class="fas fa-eye mr-1"></i>Detail
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('');
+                allUsersData = data.data;
+                renderUsersTable();
+                
+                // Pasang event listener jika belum terpasang
+                const searchInput = document.getElementById('searchUser');
+                if (searchInput && !searchInput.dataset.listener) {
+                    searchInput.addEventListener('input', (e) => renderUsersTable(e.target.value));
+                    searchInput.dataset.listener = "true";
                 }
             }
         } catch(e) { console.error(e); }
     }
 
+    function renderUsersTable(filterText = '') {
+        const tbody = document.getElementById('usersTableBody');
+        if (!tbody) return;
+        
+        let filtered = allUsersData;
+        if (filterText) {
+            const lower = filterText.toLowerCase();
+            filtered = allUsersData.filter(u => 
+                (u.username && u.username.toLowerCase().includes(lower)) ||
+                (u.nama_lengkap && u.nama_lengkap.toLowerCase().includes(lower)) ||
+                (u.email && u.email.toLowerCase().includes(lower))
+            );
+        }
+
+        tbody.innerHTML = filtered.map(u => `
+            <tr>
+                <td>${u.id}</td>
+                <td>${escapeHtml(u.username || '-')}</td>
+                <td>${escapeHtml(u.nama_lengkap || '-')}</td>
+                <td>
+                    <span class="badge ${u.jenis_kelamin === 'Laki-laki' ? 'badge-info' : u.jenis_kelamin === 'Perempuan' ? 'badge-warning' : ''}">
+                        ${u.jenis_kelamin ? (u.jenis_kelamin === 'Laki-laki' ? '♂ Laki-laki' : '♀ Perempuan') : '-'}
+                    </span>
+                </td>
+                <td>${escapeHtml(u.email || '-')}</td>
+                <td>${new Date(u.created_at).toLocaleDateString('id-ID')}</td>
+                <td>
+                    <button onclick="viewUserDetail(${u.id})" class="btn-info text-xs">
+                        <i class="fas fa-eye mr-1"></i>Detail
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
     async function viewUserDetail(id) {
         showLoading(true);
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('adminToken');
             const res = await fetch(`${API_URL}/admin/users/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
             showLoading(false);
-            if (!data.success) { alert('Gagal memuat detail user'); return; }
+            if (!data.success) { alert('Gagal memuat detail user: ' + (data.message || '')); return; }
             const u = data.data;
 
             // Foto profil
@@ -1348,7 +1378,8 @@
             document.getElementById('userDetailModal').classList.add('active');
         } catch(e) {
             showLoading(false);
-            alert('Gagal terhubung ke server');
+            console.error('Error viewUserDetail:', e);
+            alert('Gagal terhubung ke server: ' + e.message);
         }
     }
 
@@ -1358,7 +1389,7 @@
 
     // ==================== PEMBAYARAN ====================
     async function loadPayments() {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         try {
             const res = await fetch(`${API_URL}/admin/payments`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
@@ -1393,7 +1424,7 @@
     }
 
     async function verifyPayment(id) {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         showLoading(true);
         try {
             const res = await fetch(`${API_URL}/admin/verify-payment/${id}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
@@ -1405,7 +1436,7 @@
 
     // ==================== SERTIFIKAT ====================
     async function loadCertificates() {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         try {
             const res = await fetch(`${API_URL}/admin/certificates`, { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
@@ -1503,7 +1534,7 @@
             contractSertifikat = new ethers.Contract(SERTIFIKAT_ADDRESS, SERTIFIKAT_ABI, signer);
             
             // 2. Upload metadata to IPFS via backend
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('adminToken');
             const ipfsRes = await fetch(`${API_URL}/admin/upload-ipfs`, {
                 method: "POST",
                 headers: {
@@ -1590,7 +1621,7 @@
             }
             
             // Send issue-certificate confirmation to backend
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('adminToken');
             const issueRes = await fetch(`${API_URL}/admin/issue-certificate`, {
                 method: "POST",
                 headers: {
@@ -1627,7 +1658,7 @@
     // ==================== IMPORT SOAL SERTIFIKAT ====================
     async function openImportSoalModal() {
         document.getElementById('importSoalModal').classList.add('active');
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         const res = await fetch(`${API_URL}/admin/babs`, { headers: { 'Authorization': `Bearer ${token}` } });
         const data = await res.json();
         if (data.success) {
@@ -1648,7 +1679,7 @@
             return;
         }
 
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         container.innerHTML = '<div class="text-center py-4 text-sm text-gray-400">Memuat soal...</div>';
         try {
             const res = await fetch(`${API_URL}/admin/soal-bab?bab_id=${babId}`, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -1685,7 +1716,7 @@
         }
 
         const soalIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         
         showLoading(true);
         try {

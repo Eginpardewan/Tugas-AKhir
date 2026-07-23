@@ -438,10 +438,10 @@
                 const result = await verifyRes.json();
 
                 if (result.success) {
-                    localStorage.setItem('token', result.token);
-                    localStorage.setItem('userRole', result.user.role);
-                    localStorage.setItem('userId', result.user.id);
-                    localStorage.setItem('username', result.user.username);
+                    localStorage.setItem('adminToken', result.token);
+                    localStorage.setItem('adminRole', result.user.role);
+                    localStorage.setItem('adminId', result.user.id);
+                    localStorage.setItem('adminUsername', result.user.username);
                     localStorage.removeItem('walletAddress');
 
                     btn.innerHTML = '<i class="fas fa-check"></i> BERHASIL!';
