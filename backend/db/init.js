@@ -183,6 +183,10 @@ module.exports = (db) => {
     ['pilihan_a','pilihan_b','pilihan_c','pilihan_d','pilihan_e'].forEach(col => {
         try { db.exec(`ALTER TABLE soal_sertifikat ADD COLUMN ${col} TEXT NOT NULL DEFAULT ''`); } catch(e) {}
     });
+    // Migrasi: tambah kolom source_type dan source_soal_bab_id untuk dual-source soal sertifikasi
+    try { db.exec(`ALTER TABLE soal_sertifikat ADD COLUMN source_type TEXT DEFAULT 'custom'`); } catch(e) {}
+    try { db.exec(`ALTER TABLE soal_sertifikat ADD COLUMN source_soal_bab_id INTEGER DEFAULT NULL`); } catch(e) {}
+    try { db.exec(`ALTER TABLE soal_sertifikat ADD COLUMN bab_id INTEGER DEFAULT NULL`); } catch(e) {}
 
     // =====================================================
     // 7. TABEL EXAM_SESSIONS

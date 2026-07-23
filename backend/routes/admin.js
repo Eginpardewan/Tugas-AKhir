@@ -294,15 +294,40 @@ module.exports = (db, dbQuery) => {
     });
     
     // ==================== SOAL PER BAB ====================
+    // GET semua soal bab, dengan filter opsional ?bab_id=X
     router.get('/soal-bab', verifyAdmin, async (req, res) => {
         try {
-            const soals = await dbQuery(`
+            const { bab_id } = req.query;
+            let sql = `
                 SELECT s.*, b.nama as bab_nama 
                 FROM soal_bab s 
                 JOIN babs b ON s.bab_id = b.id 
-                ORDER BY b.urutan, s.id
-            `);
+            `;
+            const params = [];
+            if (bab_id) {
+                sql += ' WHERE s.bab_id = ?';
+                params.push(bab_id);
+            }
+            sql += ' ORDER BY b.urutan, s.id';
+            const soals = await dbQuery(sql, params);
             res.json({ success: true, data: soals });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    // Hitung jumlah soal per bab
+    router.get('/soal-bab/count-by-bab', verifyAdmin, async (req, res) => {
+        try {
+            const counts = await dbQuery(`
+                SELECT b.id, b.nama, COUNT(s.id) as jumlah_soal,
+                       SUM(CASE WHEN s.is_active = 1 THEN 1 ELSE 0 END) as soal_aktif
+                FROM babs b
+                LEFT JOIN soal_bab s ON s.bab_id = b.id
+                GROUP BY b.id
+                ORDER BY b.urutan
+            `);
+            res.json({ success: true, data: counts });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });
         }
@@ -338,6 +363,8 @@ module.exports = (db, dbQuery) => {
     router.delete('/soal-bab/:id', verifyAdmin, async (req, res) => {
         try {
             await dbQuery('DELETE FROM soal_bab WHERE id = ?', [req.params.id]);
+            // Hapus juga dari soal_sertifikat jika pernah di-import
+            await dbQuery('DELETE FROM soal_sertifikat WHERE source_soal_bab_id = ?', [req.params.id]);
             res.json({ success: true });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });
@@ -347,22 +374,76 @@ module.exports = (db, dbQuery) => {
     // ==================== SOAL SERTIFIKAT ====================
     router.get('/soal-sertifikat', verifyAdmin, async (req, res) => {
         try {
-            const soals = await dbQuery('SELECT * FROM soal_sertifikat ORDER BY id');
+            const soals = await dbQuery(`
+                SELECT ss.*, b.nama as bab_nama
+                FROM soal_sertifikat ss
+                LEFT JOIN babs b ON ss.bab_id = b.id
+                ORDER BY ss.source_type, ss.id
+            `);
             res.json({ success: true, data: soals });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });
         }
     });
     
+    // Buat soal sertifikasi custom
     router.post('/soal-sertifikat', verifyAdmin, async (req, res) => {
         const { pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar, poin } = req.body;
         try {
             await dbQuery(
-                `INSERT INTO soal_sertifikat (pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar, poin) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                `INSERT INTO soal_sertifikat (pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar, poin, source_type) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'custom')`,
                 [pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar.toUpperCase(), poin || 10]
             );
             res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
+    // Import soal dari soal_bab ke soal_sertifikat
+    router.post('/soal-sertifikat/import-from-bab', verifyAdmin, async (req, res) => {
+        const { soal_ids } = req.body;
+        
+        if (!soal_ids || !Array.isArray(soal_ids) || soal_ids.length === 0) {
+            return res.status(400).json({ success: false, message: 'Pilih minimal 1 soal untuk diimport' });
+        }
+        
+        try {
+            let imported = 0;
+            let skipped = 0;
+            
+            for (const soalId of soal_ids) {
+                // Cek apakah soal sudah pernah di-import
+                const existing = await dbQuery(
+                    'SELECT id FROM soal_sertifikat WHERE source_soal_bab_id = ?',
+                    [soalId]
+                );
+                
+                if (existing.length > 0) {
+                    skipped++;
+                    continue;
+                }
+                
+                // Ambil data soal dari soal_bab
+                const soalRows = await dbQuery('SELECT * FROM soal_bab WHERE id = ?', [soalId]);
+                if (soalRows.length === 0) continue;
+                
+                const soal = soalRows[0];
+                await dbQuery(
+                    `INSERT INTO soal_sertifikat (pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar, poin, source_type, source_soal_bab_id, bab_id) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'chapter', ?, ?)`,
+                    [soal.pertanyaan, soal.pilihan_a, soal.pilihan_b, soal.pilihan_c, soal.pilihan_d, soal.pilihan_e, soal.jawaban_benar, soal.poin, soal.id, soal.bab_id]
+                );
+                imported++;
+            }
+            
+            res.json({
+                success: true,
+                message: `${imported} soal berhasil diimport${skipped > 0 ? `, ${skipped} soal sudah ada sebelumnya` : ''}`,
+                imported,
+                skipped
+            });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });
         }

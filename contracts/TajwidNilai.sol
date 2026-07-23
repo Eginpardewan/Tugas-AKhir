@@ -4,8 +4,8 @@ pragma solidity ^0.8.19;
 /**
  * @title TajwidNilai
  * @notice Contract untuk mencatat nilai ujian per bab ke blockchain.
- *         User memanggil sendiri menggunakan wallet MetaMask mereka,
- *         sehingga nilai tercatat atas nama wallet user itu sendiri.
+ *         Hanya admin (backend wallet) yang bisa mencatat nilai,
+ *         sehingga nilai tidak bisa dipalsukan oleh user.
  */
 contract TajwidNilai {
 
@@ -32,6 +32,9 @@ contract TajwidNilai {
     // Jumlah percobaan user per bab
     mapping(address => mapping(string => uint256)) public jumlahPercobaan;
 
+    // Admin address (deployer)
+    address public admin;
+
     // ============================================================
     // EVENTS
     // ============================================================
@@ -46,28 +49,44 @@ contract TajwidNilai {
     );
 
     // ============================================================
+    // CONSTRUCTOR & MODIFIER
+    // ============================================================
+
+    constructor() {
+        admin = msg.sender;
+    }
+
+    modifier hanyaAdmin() {
+        require(msg.sender == admin, "Hanya admin yang bisa mencatat nilai");
+        _;
+    }
+
+    // ============================================================
     // FUNGSI UTAMA
     // ============================================================
 
     /**
      * @notice Catat nilai ujian bab ke blockchain.
-     *         Dipanggil langsung oleh user menggunakan wallet mereka.
+     *         Dipanggil oleh backend (admin wallet) setelah grading.
+     * @param _user     Address wallet user yang mengerjakan ujian
      * @param _babNama  Nama bab yang diujikan (e.g. "Hukum Nun Mati dan Tanwin")
      * @param _nilai    Nilai yang diperoleh (0–100)
      */
     function submitNilaiBab(
+        address _user,
         string memory _babNama,
         uint256       _nilai
-    ) external {
+    ) external hanyaAdmin {
         require(_nilai <= 100, "Nilai tidak valid (0-100)");
         require(bytes(_babNama).length > 0, "Nama bab tidak boleh kosong");
+        require(_user != address(0), "Address user tidak valid");
 
-        jumlahPercobaan[msg.sender][_babNama]++;
-        uint256 percobaan = jumlahPercobaan[msg.sender][_babNama];
+        jumlahPercobaan[_user][_babNama]++;
+        uint256 percobaan = jumlahPercobaan[_user][_babNama];
         bool lulus = _nilai >= 80;
 
         HasilUjianBab memory hasil = HasilUjianBab({
-            user:        msg.sender,
+            user:        _user,
             babNama:     _babNama,
             nilai:       _nilai,
             isLulus:     lulus,
@@ -78,11 +97,11 @@ contract TajwidNilai {
         semuaHasil.push(hasil);
         uint256 idx = semuaHasil.length - 1;
 
-        indexTerbaru[msg.sender][_babNama] = idx;
-        sudahPernah[msg.sender][_babNama]  = true;
+        indexTerbaru[_user][_babNama] = idx;
+        sudahPernah[_user][_babNama]  = true;
 
         emit NilaiBabDicatat(
-            msg.sender,
+            _user,
             _babNama,
             _nilai,
             lulus,

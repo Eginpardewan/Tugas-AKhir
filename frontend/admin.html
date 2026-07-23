@@ -244,22 +244,62 @@
     <div id="page-soal-bab" class="page-content hidden">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold">📝 Soal Per Bab</h2>
-            <button onclick="openSoalBabModal()" class="btn-primary">
-                <i class="fas fa-plus"></i> Tambah Soal
-            </button>
+            <div class="flex gap-2">
+                <select id="filterBabSoal" onchange="loadSoalBab()" class="bg-gray-800 text-white rounded p-2 border border-green-600 text-sm">
+                    <option value="">-- Semua Bab --</option>
+                </select>
+                <button onclick="openSoalBabModal()" class="btn-primary">
+                    <i class="fas fa-plus"></i> Tambah Soal
+                </button>
+            </div>
         </div>
         <div id="soalBabList" class="space-y-4"></div>
     </div>
 
     <!-- Soal Sertifikat -->
+    <!-- Soal Sertifikat -->
     <div id="page-soal-sertifikat" class="page-content hidden">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold">🎓 Soal Sertifikat</h2>
-            <button onclick="openSoalSertifikatModal()" class="btn-primary">
-                <i class="fas fa-plus"></i> Tambah Soal
-            </button>
+            <div class="flex gap-2">
+                <button onclick="openImportSoalModal()" class="btn-info">
+                    <i class="fas fa-file-import"></i> Import dari Bab
+                </button>
+                <button onclick="openSoalSertifikatModal()" class="btn-primary">
+                    <i class="fas fa-plus"></i> Tambah Soal Custom
+                </button>
+            </div>
         </div>
         <div id="soalSertifikatList" class="space-y-4"></div>
+    </div>
+
+    <!-- Modal Import Soal Sertifikat -->
+    <div id="importSoalModal" class="modal">
+        <div class="modal-content max-w-4xl">
+            <h3 class="text-xl font-bold mb-4">Import Soal dari Bab</h3>
+            <div class="mb-4">
+                <label class="block text-sm mb-1">Pilih Bab Sumber</label>
+                <select id="importBabSelect" onchange="loadSoalForImport()" class="w-full bg-gray-800 text-white rounded p-2 border border-green-600">
+                    <option value="">-- Pilih Bab --</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-semibold">Pilih Soal:</span>
+                    <button type="button" onclick="selectAllImportSoal(true)" class="text-xs text-blue-400 hover:underline">Pilih Semua</button>
+                    <button type="button" onclick="selectAllImportSoal(false)" class="text-xs text-red-400 hover:underline ml-2">Batal Semua</button>
+                </div>
+                <div id="importSoalList" class="space-y-2 max-h-60 overflow-y-auto p-2 border border-gray-700 rounded bg-gray-900">
+                    <div class="text-center text-gray-500 text-sm py-4">Silakan pilih bab terlebih dahulu</div>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-4">
+                <button type="button" onclick="submitImportSoal()" class="btn-primary flex-1">Import Terpilih</button>
+                <button type="button" onclick="closeImportSoalModal()" class="btn-outline flex-1">Tutup</button>
+            </div>
+        </div>
     </div>
 
     <div id="page-users" class="page-content hidden">
@@ -985,13 +1025,25 @@
         const res = await fetch(`${API_URL}/admin/babs`, { headers: { 'Authorization': `Bearer ${token}` } });
         const data = await res.json();
         if (data.success) {
-            document.getElementById('soalBabBabId').innerHTML = '<option value="">-- Pilih Bab --</option>' + data.data.map(b => `<option value="${b.id}">${escapeHtml(b.nama)}</option>`).join('');
+            const options = data.data.map(b => `<option value="${b.id}">${escapeHtml(b.nama)}</option>`).join('');
+            document.getElementById('soalBabBabId').innerHTML = '<option value="">-- Pilih Bab --</option>' + options;
+            
+            const filterEl = document.getElementById('filterBabSoal');
+            if (filterEl) {
+                const currentVal = filterEl.value;
+                filterEl.innerHTML = '<option value="">-- Semua Bab --</option>' + options;
+                filterEl.value = currentVal;
+            }
         }
     }
 
     async function loadSoalBab() {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${API_URL}/admin/soal-bab`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const filterEl = document.getElementById('filterBabSoal');
+        const babId = filterEl ? filterEl.value : '';
+        const url = babId ? `${API_URL}/admin/soal-bab?bab_id=${babId}` : `${API_URL}/admin/soal-bab`;
+        
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
         const data = await res.json();
         if (data.success) {
             const container = document.getElementById('soalBabList');
@@ -1120,9 +1172,10 @@
                 <div class="card">
                     <div class="flex justify-between items-start gap-4">
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 mb-2">
+                            <div class="flex items-center gap-2 mb-2 flex-wrap">
                                 <span class="badge badge-info text-xs">#${idx+1}</span>
                                 <span class="badge badge-warning text-xs">Poin: ${s.poin}</span>
+                                ${s.source_type === 'chapter' ? `<span class="badge bg-purple-900/40 text-purple-400 border border-purple-700 text-xs">Import: Bab ${escapeHtml(s.bab_nama || '')}</span>` : `<span class="badge bg-indigo-900/40 text-indigo-400 border border-indigo-700 text-xs">Custom</span>`}
                                 <span class="bg-green-900/40 text-green-400 border border-green-700 px-2 py-0.5 rounded text-xs font-bold">Kunci: ${escapeHtml(s.jawaban_benar)}</span>
                             </div>
                             <h3 class="font-bold text-sm mb-2">${escapeHtml(s.pertanyaan)}</h3>
@@ -1135,7 +1188,7 @@
                             </div>
                         </div>
                         <div class="flex gap-2 flex-shrink-0">
-                            <button onclick="editSoalSertifikat(${s.id})" class="btn-warning">Edit</button>
+                            ${s.source_type !== 'chapter' ? `<button onclick="editSoalSertifikat(${s.id})" class="btn-warning">Edit</button>` : ''}
                             <button onclick="deleteSoalSertifikat(${s.id})" class="btn-danger">Hapus</button>
                         </div>
                     </div>
@@ -1568,6 +1621,93 @@
             showLoading(false);
             console.error("Gagal melakukan minting:", err);
             alert("Gagal melakukan minting: " + (err.reason || err.message));
+        }
+    }
+
+    // ==================== IMPORT SOAL SERTIFIKAT ====================
+    async function openImportSoalModal() {
+        document.getElementById('importSoalModal').classList.add('active');
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/admin/babs`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('importBabSelect').innerHTML = '<option value="">-- Pilih Bab --</option>' + data.data.map(b => `<option value="${b.id}">${escapeHtml(b.nama)}</option>`).join('');
+            document.getElementById('importSoalList').innerHTML = '<div class="text-center text-gray-500 text-sm py-4">Silakan pilih bab terlebih dahulu</div>';
+        }
+    }
+
+    function closeImportSoalModal() {
+        document.getElementById('importSoalModal').classList.remove('active');
+    }
+
+    async function loadSoalForImport() {
+        const babId = document.getElementById('importBabSelect').value;
+        const container = document.getElementById('importSoalList');
+        if (!babId) {
+            container.innerHTML = '<div class="text-center text-gray-500 text-sm py-4">Silakan pilih bab terlebih dahulu</div>';
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        container.innerHTML = '<div class="text-center py-4 text-sm text-gray-400">Memuat soal...</div>';
+        try {
+            const res = await fetch(`${API_URL}/admin/soal-bab?bab_id=${babId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success) {
+                if (data.data.length === 0) {
+                    container.innerHTML = '<div class="text-center text-yellow-500 text-sm py-4">Bab ini belum memiliki soal.</div>';
+                    return;
+                }
+                container.innerHTML = data.data.map(s => `
+                    <label class="flex items-start gap-3 p-2 hover:bg-gray-800 rounded cursor-pointer border-b border-gray-800 last:border-0">
+                        <input type="checkbox" name="importSoalIds" value="${s.id}" class="mt-1 w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold truncate" title="${escapeHtml(s.pertanyaan)}">${escapeHtml(s.pertanyaan)}</p>
+                            <p class="text-xs text-gray-400">Poin: ${s.poin} | Kunci: ${escapeHtml(s.jawaban_benar)}</p>
+                        </div>
+                    </label>
+                `).join('');
+            }
+        } catch(e) {
+            container.innerHTML = '<div class="text-center text-red-500 text-sm py-4">Gagal memuat soal</div>';
+        }
+    }
+
+    function selectAllImportSoal(checked) {
+        document.querySelectorAll('input[name="importSoalIds"]').forEach(cb => cb.checked = checked);
+    }
+
+    async function submitImportSoal() {
+        const checkboxes = document.querySelectorAll('input[name="importSoalIds"]:checked');
+        if (checkboxes.length === 0) {
+            alert('Pilih minimal 1 soal untuk diimport');
+            return;
+        }
+
+        const soalIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+        const token = localStorage.getItem('token');
+        
+        showLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/admin/soal-sertifikat/import-from-bab`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ soal_ids: soalIds })
+            });
+            const data = await res.json();
+            showLoading(false);
+            
+            if (data.success) {
+                alert(data.message);
+                closeImportSoalModal();
+                loadSoalSertifikat();
+                loadDashboard();
+            } else {
+                alert(data.message || 'Gagal import soal');
+            }
+        } catch(e) {
+            showLoading(false);
+            alert('Error: ' + e.message);
         }
     }
 

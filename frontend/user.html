@@ -213,6 +213,166 @@
             border-bottom-color: #4caf50;
             background: rgba(46, 125, 50, 0.1);
         }
+
+        /* ===== Exam Navigation Styles ===== */
+        .exam-nav-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            padding: 12px 0;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(46, 125, 50, 0.3);
+        }
+        .exam-nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 2px solid #374151;
+            background: rgba(0, 0, 0, 0.3);
+            color: #9ca3af;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .exam-nav-btn:hover {
+            border-color: #2E7D32;
+            color: #e2e8f0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
+        }
+        .exam-nav-btn.active {
+            border-color: #2E7D32;
+            background: rgba(46, 125, 50, 0.3);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(46, 125, 50, 0.4);
+            transform: scale(1.1);
+        }
+        .exam-nav-btn.answered {
+            border-color: #4caf50;
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+        .exam-nav-btn.answered::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            right: 3px;
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+        }
+        .exam-progress-text {
+            text-align: center;
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 12px;
+        }
+        .exam-progress-text strong {
+            color: #4caf50;
+        }
+        .exam-soal-container {
+            min-height: 280px;
+            animation: fadeIn 0.3s ease;
+        }
+        .exam-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid rgba(46, 125, 50, 0.2);
+            flex-wrap: wrap;
+        }
+        .exam-footer .btn-nav {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid #374151;
+            background: rgba(0, 0, 0, 0.3);
+            color: #e2e8f0;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .exam-footer .btn-nav:hover:not(:disabled) {
+            border-color: #2E7D32;
+            background: rgba(46, 125, 50, 0.15);
+        }
+        .exam-footer .btn-nav:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .exam-footer .btn-submit-exam {
+            padding: 10px 24px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #2E7D32, #1B5E20);
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+        }
+        .exam-footer .btn-submit-exam:hover {
+            background: linear-gradient(135deg, #388E3C, #2E7D32);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+        }
+        .exam-pilihan-label {
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 2px solid #374151;
+            background: rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .exam-pilihan-label:hover {
+            border-color: rgba(46, 125, 50, 0.5);
+            background: rgba(46, 125, 50, 0.05);
+        }
+        .exam-pilihan-label.selected {
+            border-color: rgba(46, 125, 50, 0.8);
+            background: rgba(46, 125, 50, 0.12);
+            box-shadow: 0 0 10px rgba(46, 125, 50, 0.1);
+        }
+        .exam-pilihan-label input[type="radio"] {
+            accent-color: #4caf50;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+        @media (max-width: 768px) {
+            .exam-nav-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 12px;
+            }
+            .exam-footer {
+                flex-direction: column;
+            }
+            .exam-footer .btn-nav,
+            .exam-footer .btn-submit-exam {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -410,6 +570,14 @@
                                 </p>
                                 <p id="view_instansi" class="font-semibold text-white">-</p>
                             </div>
+
+                            <!-- Wallet Address -->
+                            <div class="bg-black/30 rounded-lg p-3 md:col-span-2">
+                                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                                    <i class="fas fa-wallet mr-1"></i> Wallet Address (Blockchain)
+                                </p>
+                                <p id="view_wallet_address" class="font-mono text-sm text-green-400 break-all">-</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -437,6 +605,11 @@
                         <div>
                             <label class="block text-sm mb-2 text-gray-300">Username</label>
                             <input type="text" id="edit_username" name="username" class="cyber-input w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-2 text-gray-300">Wallet Address (Opsional)</label>
+                            <input type="text" id="edit_wallet_address" name="wallet_address" placeholder="0x..." class="cyber-input w-full">
+                            <p class="text-[10px] text-gray-500 mt-1">Digunakan untuk mencatat nilai Anda di blockchain.</p>
                         </div>
                         <div>
                             <label class="block text-sm mb-2 text-gray-300">Nomor Peserta (Otomatis)</label>
@@ -494,15 +667,70 @@
 
 <!-- Modal Ujian -->
 <div id="examModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 900px;">
         <div class="flex justify-between items-center mb-4">
             <h3 id="examTitle" class="text-xl font-bold">Ujian</h3>
-            <button class="modal-close text-gray-400 hover:text-white text-2xl">&times;</button>
+            <div class="flex items-center gap-4">
+                <div id="examTimer" class="text-yellow-400 font-mono font-bold text-lg hidden bg-black/30 px-3 py-1 rounded border border-yellow-500/30">10:00</div>
+                <!-- Tombol close dihapus agar user tidak bisa keluar dari ujian -->
+            </div>
         </div>
-        <div id="examQuestions" class="max-h-96 overflow-y-auto mb-4 space-y-4"></div>
-        <button id="submitExamBtn" class="btn-primary w-full">Submit Jawaban</button>
+        <!-- Nomor Navigasi -->
+        <div id="examNavNumbers" class="exam-nav-container"></div>
+        <!-- Progress Text -->
+        <div id="examProgressText" class="exam-progress-text"></div>
+        <!-- Soal Container (1 soal per tampilan) -->
+        <div id="examQuestions" class="exam-soal-container"></div>
+        <!-- Footer: Back / Submit / Next -->
+        <div class="exam-footer">
+            <button id="btnPrevSoal" class="btn-nav" onclick="prevSoal()">
+                <i class="fas fa-chevron-left"></i> Sebelumnya
+            </button>
+            <button id="submitExamBtn" class="btn-submit-exam">
+                <i class="fas fa-paper-plane"></i> Submit Jawaban
+            </button>
+            <button id="btnNextSoal" class="btn-nav" onclick="nextSoal()">
+                Selanjutnya <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
     </div>
 </div>
+
+<!-- Modal Blockchain Processing -->
+<div id="blockchainProcessModal" class="modal" style="z-index: 1100;">
+    <div class="modal-content" style="background: rgba(10, 14, 23, 0.95); border: 1px solid #00ff88; box-shadow: 0 0 30px rgba(0, 255, 136, 0.2); max-width: 500px; text-align: center; padding: 40px 20px;">
+        <div class="blockchain-animation-container" style="margin-bottom: 30px; position: relative; height: 120px; display: flex; justify-content: center; align-items: center;">
+            <i class="fas fa-cube text-6xl text-green-500 blockchain-cube" style="animation: float-cube 3s ease-in-out infinite, pulse-glow 2s infinite;"></i>
+            <div class="blockchain-lines" style="position: absolute; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #00ff88, transparent); animation: scan-line 2s linear infinite;"></div>
+        </div>
+        <h3 class="text-2xl font-bold text-white mb-2 font-orbitron" style="letter-spacing: 2px;">SECURING SCORE</h3>
+        <p class="text-green-400 mb-6 font-mono text-sm" id="blockchainProcessStatus">Establishing Web3 Connection...</p>
+        
+        <div class="w-full bg-gray-900 rounded-full h-2 mb-4 border border-gray-700">
+            <div id="blockchainProgressBar" class="bg-green-500 h-2 rounded-full" style="width: 10%; transition: width 0.5s ease; box-shadow: 0 0 10px #00ff88;"></div>
+        </div>
+        <div class="text-xs text-gray-500 font-mono flex justify-between">
+            <span>Network: Sepolia</span>
+            <span id="blockchainHashVisual">0x...</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes float-cube {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-15px) rotate(10deg); }
+    }
+    @keyframes pulse-glow {
+        0%, 100% { filter: drop-shadow(0 0 10px rgba(0,255,136,0.3)); color: #00ff88; }
+        50% { filter: drop-shadow(0 0 25px rgba(0,255,136,0.8)); color: #4fc3f7; }
+    }
+    @keyframes scan-line {
+        0% { top: 0; opacity: 0; }
+        50% { opacity: 1; }
+        100% { top: 100%; opacity: 0; }
+    }
+</style>
 
 <!-- Modal Hasil -->
 <div id="resultModal" class="modal">
@@ -878,6 +1106,7 @@
                 container.innerHTML = babs.data.map(bab => {
                     const nilai = progressMap[bab.id]?.nilai || 0;
                     const isLulus = progressMap[bab.id]?.is_lulus || false;
+                    const txHash = progressMap[bab.id]?.transaction_hash;
                     return `
                         <div class="card">
                             <div class="flex justify-between items-start mb-3">
@@ -887,13 +1116,23 @@
                                 </span>
                             </div>
                             <p class="text-sm text-gray-400 mb-4">${escapeHtml(bab.deskripsi || '')}</p>
-                            ${!isLulus ? `
-                                <button onclick="startBabExam(${bab.id}, '${escapeHtml(bab.nama)}')" class="btn-primary w-full text-sm">
-                                    Mulai Ujian
-                                </button>
-                            ` : `
-                                <div class="text-center text-green-500 text-sm">✓ Anda telah lulus ujian bab ini</div>
-                            `}
+                            ${isLulus && txHash ? `
+                                <div class="mb-4 p-2 bg-green-900/20 border border-green-800 rounded">
+                                    <p class="text-xs text-green-400 mb-1">🔗 Tercatat di Blockchain</p>
+                                    <a href="https://sepolia.etherscan.io/tx/${txHash}" target="_blank" class="text-xs text-blue-400 hover:underline break-all">
+                                        ${txHash.substring(0, 15)}...${txHash.substring(txHash.length - 10)}
+                                    </a>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="mb-3 p-2 bg-yellow-900/20 border border-yellow-800 rounded text-xs text-yellow-300 text-left flex items-start gap-2">
+                                <i class="fas fa-info-circle mt-0.5"></i> 
+                                <span><b>Syarat Lulus:</b> Nilai ujian minimal <b>80</b>. Di bawah 80 dinyatakan Belum Lulus.</span>
+                            </div>
+
+                            <button onclick="startBabExam(${bab.id}, '${escapeHtml(bab.nama)}')" class="${isLulus ? 'btn-outline' : 'btn-primary'} w-full text-sm">
+                                ${isLulus ? 'Ulang Ujian' : 'Mulai Ujian'}
+                            </button>
                         </div>
                     `;
                 }).join('');
@@ -919,6 +1158,12 @@
                         <i class="fas fa-check-circle text-5xl md:text-6xl text-green-500 mb-4"></i>
                         <h3 class="text-xl md:text-2xl font-bold mb-2">Selamat!</h3>
                         <p class="mb-4 text-sm">Anda telah menyelesaikan semua ujian bab dengan nilai minimal 80%.</p>
+                        
+                        <div class="mb-5 mx-auto max-w-sm p-3 bg-yellow-900/20 border border-yellow-800 rounded text-sm text-yellow-300 text-left flex items-start gap-2">
+                            <i class="fas fa-info-circle mt-1"></i> 
+                            <span><b>Syarat Lulus Sertifikat:</b> Nilai akhir minimal <b>80</b>. Di bawah 80 dinyatakan Belum Lulus.</span>
+                        </div>
+
                         <button onclick="startCertificateExam()" class="btn-primary px-6 md:px-8 py-3">
                             Mulai Ujian Sertifikat
                         </button>
@@ -984,79 +1229,203 @@
         } catch(e) { showLoading(false); alert('Gagal memulai ujian sertifikat'); }
     }
 
+    // ==================== EXAM STATE ====================
+    let examSoalList = [];   // Array soal dari backend
+    let examCurrentIdx = 0;  // Index soal yang sedang ditampilkan
+    let examType = 'bab';    // 'bab' atau 'sertifikat'
+    let examAnswers = {};    // { soalId: 'A'|'B'|'C'|'D'|'E' }
+    let examTimerInterval = null;
+
+    function startExamTimer(durationSeconds) {
+        clearInterval(examTimerInterval);
+        const timerEl = document.getElementById('examTimer');
+        timerEl.classList.remove('hidden');
+        
+        let remaining = durationSeconds;
+        
+        function updateDisplay() {
+            const m = Math.floor(remaining / 60);
+            const s = remaining % 60;
+            timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            
+            if (remaining <= 60) {
+                timerEl.classList.remove('text-yellow-400', 'border-yellow-500/30');
+                timerEl.classList.add('text-red-500', 'border-red-500/50');
+            } else {
+                timerEl.classList.remove('text-red-500', 'border-red-500/50');
+                timerEl.classList.add('text-yellow-400', 'border-yellow-500/30');
+            }
+        }
+        
+        updateDisplay();
+        
+        examTimerInterval = setInterval(() => {
+            remaining--;
+            updateDisplay();
+            if (remaining <= 0) {
+                clearInterval(examTimerInterval);
+                alert('Waktu ujian habis! Jawaban Anda akan disubmit secara otomatis.');
+                submitExam(examType, true);
+            }
+        }, 1000);
+    }
+
     function showExamModal(title, soal, type) {
+        examSoalList = soal;
+        examCurrentIdx = 0;
+        examType = type;
+        examAnswers = {};
+
         const modal = document.getElementById('examModal');
-        const container = document.getElementById('examQuestions');
         document.getElementById('examTitle').innerText = title;
-        
-        container.innerHTML = `
-            <div class="bg-green-500/10 p-3 rounded-lg mb-4">
-                <p class="text-sm">📋 Total Soal: <strong>${soal.length}</strong> soal — Pilih salah satu jawaban (A/B/C/D/E)</p>
-            </div>
-            ${soal.map((s, idx) => `
-                <div class="bg-black/40 p-4 rounded-lg" id="soal-block-${s.id}">
-                    <div class="flex justify-between mb-2">
-                        <span class="font-bold text-sm">Soal ${idx + 1}</span>
-                        <span class="badge badge-warning text-xs">Poin: ${s.poin}</span>
-                    </div>
-                    <p class="mb-3 text-sm leading-relaxed">${escapeHtml(s.pertanyaan)}</p>
-                    <div class="space-y-2">
-                        ${Object.entries(s.pilihan || {}).map(([key, val]) => `
-                            <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-700/50 bg-black/20 cursor-pointer hover:border-green-500/40 hover:bg-green-500/5 transition-all" 
-                                   style="user-select:none" onclick="selectPilihan(this, '${s.id}', '${key}')">
-                                <input type="radio" name="jawaban_${s.id}" value="${key}" class="mt-0.5 accent-green-500" id="radio_${s.id}_${key}">
-                                <span class="flex-1 text-sm">
-                                    <span class="font-bold text-green-400 mr-1">${key}.</span> ${escapeHtml(val || '')}
-                                </span>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('')}
-        `;
-        
+
+        // Note: Tombol close di-hilangkan dari UI. Jika butuh escape, gunakan devtools.
+
+        if (type === 'bab') {
+            startExamTimer(10 * 60); // 10 menit
+        } else {
+            clearInterval(examTimerInterval);
+            document.getElementById('examTimer').classList.add('hidden');
+        }
+
+        // Render nomor navigasi
+        renderExamNav();
+        // Render soal pertama
+        renderCurrentSoal();
+
         modal.classList.add('active');
-        
+
         const submitBtn = document.getElementById('submitExamBtn');
         submitBtn.onclick = () => submitExam(type);
     }
 
-    function selectPilihan(label, soalId, key) {
-        // Hapus highlight sebelumnya pada grup ini
-        const block = document.getElementById(`soal-block-${soalId}`);
-        block.querySelectorAll('label').forEach(l => {
-            l.style.borderColor = '';
-            l.style.background = '';
-        });
-        // Highlight pilihan aktif
-        label.style.borderColor = 'rgba(46,125,50,0.7)';
-        label.style.background = 'rgba(46,125,50,0.12)';
+    function renderExamNav() {
+        const navContainer = document.getElementById('examNavNumbers');
+        navContainer.innerHTML = examSoalList.map((s, idx) => {
+            const isActive = idx === examCurrentIdx ? 'active' : '';
+            const isAnswered = examAnswers[s.id] ? 'answered' : '';
+            return `<button class="exam-nav-btn ${isActive} ${isAnswered}" 
+                            onclick="goToSoal(${idx})" 
+                            id="nav-btn-${idx}">${idx + 1}</button>`;
+        }).join('');
     }
 
-    async function submitExam(type) {
-        if (!confirm('Yakin ingin mengumpulkan jawaban?')) return;
-        
+    function renderCurrentSoal() {
+        const container = document.getElementById('examQuestions');
+        const s = examSoalList[examCurrentIdx];
+        const idx = examCurrentIdx;
+        const savedAnswer = examAnswers[s.id] || null;
+
+        // Update progress text
+        document.getElementById('examProgressText').innerHTML = 
+            `Soal <strong>${idx + 1}</strong> dari <strong>${examSoalList.length}</strong> — Poin: <strong>${s.poin}</strong>`;
+
+        // Render soal
+        container.innerHTML = `
+            <div class="bg-black/40 p-5 rounded-xl" id="soal-block-${s.id}">
+                <p class="mb-4 text-base leading-relaxed">${escapeHtml(s.pertanyaan)}</p>
+                <div class="space-y-3">
+                    ${Object.entries(s.pilihan || {}).filter(([k, v]) => v).map(([key, val]) => {
+                        const isSelected = savedAnswer === key;
+                        return `
+                            <label class="exam-pilihan-label ${isSelected ? 'selected' : ''}" 
+                                   onclick="selectPilihan(this, '${s.id}', '${key}')">
+                                <input type="radio" name="jawaban_${s.id}" value="${key}" 
+                                       ${isSelected ? 'checked' : ''}>
+                                <span class="flex-1 text-sm">
+                                    <span class="font-bold text-green-400 mr-1">${key}.</span> ${escapeHtml(val)}
+                                </span>
+                            </label>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+
+        // Update navigasi & tombol
+        renderExamNav();
+        updateNavButtons();
+    }
+
+    function updateNavButtons() {
+        const prevBtn = document.getElementById('btnPrevSoal');
+        const nextBtn = document.getElementById('btnNextSoal');
+        prevBtn.disabled = examCurrentIdx === 0;
+        nextBtn.disabled = examCurrentIdx === examSoalList.length - 1;
+    }
+
+    function goToSoal(idx) {
+        if (idx < 0 || idx >= examSoalList.length) return;
+        examCurrentIdx = idx;
+        renderCurrentSoal();
+    }
+
+    function nextSoal() {
+        if (examCurrentIdx < examSoalList.length - 1) {
+            examCurrentIdx++;
+            renderCurrentSoal();
+        }
+    }
+
+    function prevSoal() {
+        if (examCurrentIdx > 0) {
+            examCurrentIdx--;
+            renderCurrentSoal();
+        }
+    }
+
+    function selectPilihan(label, soalId, key) {
+        // Simpan jawaban
+        examAnswers[soalId] = key;
+
+        // Hapus highlight sebelumnya
+        const block = document.getElementById(`soal-block-${soalId}`);
+        block.querySelectorAll('.exam-pilihan-label').forEach(l => {
+            l.classList.remove('selected');
+        });
+        // Highlight pilihan aktif
+        label.classList.add('selected');
+
+        // Update navigasi nomor (tandai sudah dijawab)
+        renderExamNav();
+    }
+
+    async function submitExam(type, isAutoSubmit = false) {
         const exam = type === 'bab' ? currentBabExam : currentCertExam;
+
+        if (!exam || !exam.soal) {
+            alert('Data ujian tidak ditemukan. Silakan mulai ulang ujian.');
+            return;
+        }
+
+        // Build jawaban dari examAnswers state
         const jawaban = [];
         let belumDijawab = 0;
         exam.soal.forEach(soal => {
-            const selected = document.querySelector(`input[name="jawaban_${soal.id}"]:checked`);
-            if (selected) {
-                jawaban.push({ soal_id: soal.id, jawaban_user: selected.value });
+            const answer = examAnswers[soal.id] || '';
+            if (answer) {
+                jawaban.push({ soal_id: soal.id, jawaban_user: answer });
             } else {
                 belumDijawab++;
                 jawaban.push({ soal_id: soal.id, jawaban_user: '' });
             }
         });
 
-        if (belumDijawab > 0) {
-            if (!confirm(`Ada ${belumDijawab} soal yang belum dijawab. Tetap kumpulkan?`)) return;
+        if (!isAutoSubmit) {
+            if (belumDijawab > 0) {
+                if (!confirm(`Ada ${belumDijawab} soal yang belum dijawab. Tetap kumpulkan?`)) return;
+            }
+            if (!confirm('Yakin ingin mengumpulkan jawaban?')) return;
         }
         
+        clearInterval(examTimerInterval);
         showLoading(true);
         try {
             const token = localStorage.getItem('token');
             const endpoint = type === 'bab' ? '/user/submit-bab-exam' : '/user/submit-certificate-exam';
+            
+            console.log('Submitting exam:', { session_id: exam.session_id, jawaban_count: jawaban.length });
+            
             const response = await fetch(`${API_URL}${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -1066,27 +1435,82 @@
                     jawaban: jawaban
                 })
             });
-            const result = await response.json();
+            
+            const responseText = await response.text();
+            console.log('Server response:', response.status, responseText);
+            
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (jsonErr) {
+                showLoading(false);
+                alert('Server mengembalikan respons tidak valid: ' + responseText.substring(0, 200));
+                return;
+            }
+            
             showLoading(false);
             document.getElementById('examModal').classList.remove('active');
+            
+            if (type === 'bab' && result.is_lulus) {
+                const web3Modal = document.getElementById('blockchainProcessModal');
+                const pBar = document.getElementById('blockchainProgressBar');
+                const pStatus = document.getElementById('blockchainProcessStatus');
+                const pHash = document.getElementById('blockchainHashVisual');
+                
+                web3Modal.classList.add('active');
+                pBar.style.width = '20%';
+                pStatus.textContent = 'Encrypting Score Data...';
+                pStatus.className = 'text-green-400 mb-6 font-mono text-sm';
+                pHash.textContent = '0x...';
+                
+                try {
+                    await new Promise(r => setTimeout(r, 1000));
+                    pBar.style.width = '40%';
+                    pStatus.textContent = 'Connecting to Ethereum Sepolia Network...';
+                    
+                    const triggerRes = await fetch(`${API_URL}/user/trigger-blockchain-record`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ session_id: result.session_id, type: 'bab' })
+                    });
+                    const triggerData = await triggerRes.json();
+                    
+                    pBar.style.width = '80%';
+                    pStatus.textContent = 'Generating Transaction Hash...';
+                    await new Promise(r => setTimeout(r, 800));
+                    
+                    if (triggerData.success && triggerData.txHash) {
+                        result.blockchain_tx = triggerData.txHash;
+                        pHash.textContent = triggerData.txHash.substring(0, 15) + '...';
+                        pBar.style.width = '100%';
+                        pStatus.textContent = 'Block Confirmed! Securing Complete.';
+                        pStatus.className = 'text-green-400 mb-6 font-mono text-sm font-bold';
+                    } else {
+                        pBar.style.width = '100%';
+                        pStatus.textContent = 'Score secured locally (Blockchain skipped).';
+                        pStatus.className = 'text-yellow-400 mb-6 font-mono text-sm';
+                    }
+                    
+                    await new Promise(r => setTimeout(r, 1500));
+                } catch (e) {
+                    console.error('Trigger blockchain error:', e);
+                } finally {
+                    web3Modal.classList.remove('active');
+                }
+            }
             
             showResultModal(result);
 
             if (type === 'bab') {
                 loadUjianPage();
                 loadDashboard();
-                // Jika LULUS, catat nilai ke blockchain otomatis via MetaMask
-                if (result.success && result.is_lulus) {
-                    await recordNilaiBabToBlockchain(
-                        exam.bab_id,
-                        exam.bab_nama,
-                        result.persentase,
-                        true
-                    );
-                }
             }
             if (type === 'sertifikat' && result.is_lulus) showPaymentModal();
-        } catch(e) { showLoading(false); alert('Gagal submit ujian'); }
+        } catch(e) {
+            console.error('Submit exam error:', e);
+            showLoading(false);
+            alert('Gagal submit ujian: ' + (e.message || e));
+        }
     }
 
     // ==================== PEMBAYARAN ====================
@@ -1211,19 +1635,78 @@
     function showResultModal(result) {
         const modal = document.getElementById('resultModal');
         const container = document.getElementById('resultContent');
+
+        // Handle error response
+        if (!result.success) {
+            container.innerHTML = `
+                <div class="text-center">
+                    <div class="text-5xl md:text-6xl mb-4">❌</div>
+                    <h3 class="text-xl md:text-2xl font-bold text-red-500 mb-2">Gagal Submit</h3>
+                    <p class="text-sm text-gray-300 mb-4">${escapeHtml(result.message || 'Terjadi kesalahan saat mengirim jawaban.')}</p>
+                </div>
+            `;
+            modal.classList.add('active');
+            return;
+        }
+
         const isLulus = result.is_lulus;
+        const nilaiPersen = result.persentase !== undefined ? result.persentase : 0;
+        const jumlahSoal = result.jumlah_soal || 0;
+        const jumlahBenar = result.jumlah_benar || 0;
+        const jumlahSalah = result.jumlah_salah || 0;
+        const blockchainTx = result.blockchain_tx || null;
+        
+        let blockchainHtml = '';
+        if (blockchainTx) {
+            blockchainHtml = `
+                <div style="margin-top: 16px; padding: 12px; background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 8px;">
+                    <p style="font-size: 12px; color: #00ff88; margin-bottom: 4px;">🔗 Tercatat di Blockchain Sepolia</p>
+                    <a href="https://sepolia.etherscan.io/tx/${blockchainTx}" target="_blank" 
+                       style="font-size: 11px; color: #4fc3f7; word-break: break-all; text-decoration: underline;">
+                        ${blockchainTx.substring(0, 20)}...${blockchainTx.substring(blockchainTx.length - 10)}
+                    </a>
+                </div>
+            `;
+        }
         
         container.innerHTML = `
             <div class="text-center">
                 <div class="text-5xl md:text-6xl mb-4">${isLulus ? '🎉' : '📚'}</div>
                 <h3 class="text-xl md:text-2xl font-bold ${isLulus ? 'text-green-500' : 'text-red-500'} mb-2">
-                    ${isLulus ? 'SELAMAT!' : 'BELUM LULUS'}
+                    ${isLulus ? 'SELAMAT! ANDA LULUS' : 'BELUM LULUS'}
                 </h3>
-                <p class="text-base md:text-lg mb-2">Nilai Anda: <strong>${result.persentase}%</strong></p>
-                <div class="w-full bg-gray-700 rounded-full h-2 mb-4">
-                    <div class="bg-green-500 h-2 rounded-full" style="width: ${result.persentase}%"></div>
+                
+                <div style="display: flex; justify-content: center; gap: 24px; margin: 16px 0;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: bold; color: ${isLulus ? '#00ff88' : '#ff4757'};">${nilaiPersen}%</div>
+                        <div style="font-size: 12px; color: #999;">Nilai</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: bold; color: #00ff88;">${jumlahBenar}</div>
+                        <div style="font-size: 12px; color: #999;">Benar</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: bold; color: #ff4757;">${jumlahSalah}</div>
+                        <div style="font-size: 12px; color: #999;">Salah</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: bold; color: #4fc3f7;">${jumlahSoal}</div>
+                        <div style="font-size: 12px; color: #999;">Total Soal</div>
+                    </div>
                 </div>
-                <p class="text-sm text-gray-300 mb-4">${result.message}</p>
+                
+                <div class="w-full bg-gray-700 rounded-full h-3 mb-4" style="margin: 12px 0;">
+                    <div class="${isLulus ? 'bg-green-500' : 'bg-red-500'} h-3 rounded-full transition-all duration-500" style="width: ${nilaiPersen}%"></div>
+                </div>
+                
+                <p style="font-size: 13px; color: #999; margin-bottom: 8px;">Batas kelulusan: 80%</p>
+                <p class="text-sm text-gray-300 mb-4">${escapeHtml(result.message || '')}</p>
+                
+                <div style="font-size: 12px; color: #666;">
+                    Poin: ${result.total_nilai || 0} / ${result.total_maksimal || 0}
+                </div>
+                
+                ${blockchainHtml}
             </div>
         `;
         modal.classList.add('active');
@@ -1240,6 +1723,14 @@
     // Close modals
     document.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', () => btn.closest('.modal').classList.remove('active'));
+    });
+
+    // Mencegah user reload/keluar saat ujian berlangsung
+    window.addEventListener('beforeunload', function (e) {
+        if (document.getElementById('examModal').classList.contains('active')) {
+            e.preventDefault();
+            e.returnValue = ''; // Browser akan menampilkan peringatan default
+        }
     });
 
     // ==================== PENGATURAN PROFIL ====================
@@ -1275,6 +1766,7 @@
                 document.getElementById('view_jenis_kelamin').textContent = user.jenis_kelamin || '-';
                 document.getElementById('view_kota').textContent = user.kota || '-';
                 document.getElementById('view_instansi').textContent = user.instansi || '-';
+                document.getElementById('view_wallet_address').textContent = user.wallet_address || 'Belum diatur';
 
                 // Avatar Lihat Profil
                 const viewImg = document.getElementById('viewAvatar');
@@ -1287,6 +1779,7 @@
 
                 // Isi tab Edit Profil
                 document.getElementById('edit_username').value = user.username || savedUsername || '';
+                document.getElementById('edit_wallet_address').value = user.wallet_address || '';
                 document.getElementById('edit_nomor_peserta').value = user.nomor_peserta || 'Belum Tersedia';
                 document.getElementById('edit_nama_lengkap').value = user.nama_lengkap || '';
                 document.getElementById('edit_jenis_kelamin').value = user.jenis_kelamin || '';

@@ -19,9 +19,12 @@ const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 // Pilihan ganda: bandingkan jawaban huruf
 function autoGradePG(jawabanUser, jawabanBenar, poinMaksimal = 10) {
-    const benar = (jawabanUser || '').toUpperCase().trim() === (jawabanBenar || '').toUpperCase().trim();
-    const nilai = benar ? poinMaksimal : 0;
-    const feedback = benar ? 'Jawaban benar! ✅' : `Jawaban salah. Kunci: ${jawabanBenar.toUpperCase()}`;
+    const userAns = (jawabanUser || '').toUpperCase().trim();
+    const correctAns = (jawabanBenar || '').toUpperCase().trim();
+    const poin = Number(poinMaksimal) || 10;
+    const benar = userAns === correctAns;
+    const nilai = benar ? poin : 0;
+    const feedback = benar ? 'Jawaban benar! ✅' : `Jawaban salah. Kunci: ${correctAns}`;
     return { nilai, benar, feedback };
 }
 
@@ -34,8 +37,11 @@ function getRandomSoal(arr, jumlah) {
     return shuffled.slice(0, jumlah);
 }
 
-module.exports = (db, dbQuery) => {
+module.exports = (db, dbQuery, blockchain = {}) => {
     const router = require('express').Router();
+    
+    // Blockchain objects dari server.js
+    const { blockchainWallet, nilaiContract } = blockchain;
     
     const verifyUser = async (req, res, next) => {
         const token = req.headers.authorization?.split(' ')[1];
@@ -142,11 +148,11 @@ module.exports = (db, dbQuery) => {
             
             res.json({
                 success: true,
-                session_id: result.insertId,
+                session_id: Number(result.insertId),
                 session_token: sessionToken,
                 soal: randomSoal.map((s, idx) => ({ 
                     nomor: idx + 1, 
-                    id: s.id, 
+                    id: Number(s.id), 
                     pertanyaan: s.pertanyaan,
                     pilihan: {
                         A: s.pilihan_a,
@@ -170,7 +176,7 @@ module.exports = (db, dbQuery) => {
         
         try {
             const sessions = await dbQuery(
-                'SELECT * FROM exam_sessions WHERE id = ? AND session_token = ? AND user_id = ? AND exam_type = "bab" AND completed_at IS NULL',
+                `SELECT * FROM exam_sessions WHERE id = ? AND session_token = ? AND user_id = ? AND exam_type = 'bab' AND completed_at IS NULL`,
                 [session_id, session_token, req.userId]
             );
             
@@ -185,22 +191,41 @@ module.exports = (db, dbQuery) => {
             
             let totalNilai = 0;
             let totalMaksimal = 0;
+            let jumlahBenar = 0;
+            let jumlahSalah = 0;
+            const detailJawaban = [];
             
             for (const jawab of jawaban) {
-                const soal = soals.find(s => s.id === jawab.soal_id);
-                if (!soal) continue;
+                const soal = soals.find(s => Number(s.id) === Number(jawab.soal_id));
+                if (!soal) {
+                    console.warn('Soal not found for id:', jawab.soal_id);
+                    continue;
+                }
                 
                 const grade = autoGradePG(jawab.jawaban_user, soal.jawaban_benar, soal.poin);
                 totalNilai += grade.nilai;
-                totalMaksimal += soal.poin;
+                totalMaksimal += (Number(soal.poin) || 10);
+                
+                if (grade.benar) jumlahBenar++;
+                else jumlahSalah++;
+                
+                detailJawaban.push({
+                    soal_id: jawab.soal_id,
+                    jawaban_user: jawab.jawaban_user || '',
+                    jawaban_benar: soal.jawaban_benar,
+                    benar: grade.benar,
+                    nilai: grade.nilai,
+                    feedback: grade.feedback
+                });
                 
                 await dbQuery(
                     `INSERT INTO exam_answers (session_id, soal_id, soal_type, jawaban_user, nilai, feedback) 
                      VALUES (?, ?, 'bab', ?, ?, ?)`,
-                    [session_id, jawab.soal_id, jawab.jawaban_user, grade.nilai, grade.feedback]
+                    [Number(session_id), Number(jawab.soal_id), String(jawab.jawaban_user || ''), Number(grade.nilai), String(grade.feedback)]
                 );
             }
             
+            const jumlahSoal = soals.length;
             const persentase = totalMaksimal > 0 ? Math.round((totalNilai / totalMaksimal) * 100) : 0;
             const isLulus = persentase >= 80;
             
@@ -209,15 +234,20 @@ module.exports = (db, dbQuery) => {
             await dbQuery(
                 `INSERT INTO nilai_bab (user_id, bab_id, session_id, total_nilai, maksimal_nilai, persentase, is_lulus) 
                  VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                [req.userId, session.bab_id, session_id, totalNilai, totalMaksimal, persentase, isLulus]
+                [Number(req.userId), Number(session.bab_id), Number(session_id), Number(totalNilai), Number(totalMaksimal), Number(persentase), isLulus ? 1 : 0]
             );
             
             res.json({
                 success: true,
+                jumlah_soal: jumlahSoal,
+                jumlah_benar: jumlahBenar,
+                jumlah_salah: jumlahSalah,
                 total_nilai: totalNilai,
                 total_maksimal: totalMaksimal,
                 persentase: persentase,
                 is_lulus: isLulus,
+                session_id: session_id,
+                detail_jawaban: detailJawaban,
                 message: isLulus ? '🎉 Selamat! Anda lulus ujian bab ini!' : '📚 Nilai Anda belum mencapai 80. Silakan coba lagi.'
             });
         } catch (err) {
@@ -226,25 +256,85 @@ module.exports = (db, dbQuery) => {
         }
     });
     
+    // ==================== TRIGGER BLOCKCHAIN RECORDING ====================
+    router.post('/trigger-blockchain-record', verifyUser, async (req, res) => {
+        const { session_id, type } = req.body;
+        if (type !== 'bab') {
+            return res.json({ success: true, message: 'Only bab exam supports direct score blockchain recording' });
+        }
+        
+        try {
+            const sessions = await dbQuery(`SELECT * FROM exam_sessions WHERE id = ? AND user_id = ?`, [session_id, req.userId]);
+            if (sessions.length === 0) return res.status(404).json({ success: false, message: 'Session not found' });
+            
+            const session = sessions[0];
+            const nilaiRows = await dbQuery(`SELECT * FROM nilai_bab WHERE session_id = ?`, [session_id]);
+            if (nilaiRows.length === 0) return res.status(404).json({ success: false, message: 'Score not found' });
+            
+            const nilaiData = nilaiRows[0];
+            if (!nilaiData.is_lulus) return res.status(400).json({ success: false, message: 'User did not pass' });
+            
+            let blockchainTxHash = null;
+            if (nilaiContract && blockchainWallet) {
+                const userRows = await dbQuery('SELECT wallet_address FROM users WHERE id = ?', [req.userId]);
+                const userWallet = userRows[0]?.wallet_address;
+                
+                const babRows = await dbQuery('SELECT nama FROM babs WHERE id = ?', [session.bab_id]);
+                const babNama = babRows[0]?.nama || `Bab ${session.bab_id}`;
+                
+                if (userWallet && /^0x[a-fA-F0-9]{40}$/.test(userWallet)) {
+                    console.log(`🔗 Triggering blockchain record: user=${userWallet}, bab=${babNama}, nilai=${nilaiData.persentase}`);
+                    const tx = await nilaiContract.submitNilaiBab(userWallet, babNama, nilaiData.persentase);
+                    blockchainTxHash = tx.hash;
+                    console.log(`✅ Blockchain TX sent: ${blockchainTxHash}`);
+                    
+                    await dbQuery(
+                        `INSERT INTO blockchain_bab_results (user_id, bab_id, bab_nama, nilai, is_lulus, transaction_hash, wallet_address) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                        [Number(req.userId), Number(session.bab_id), String(babNama), Number(nilaiData.persentase), 1, String(blockchainTxHash), String(userWallet)]
+                    );
+                    
+                    // Fire and forget wait
+                    tx.wait().catch(e => console.error("TX Wait error:", e));
+                } else {
+                    console.warn('User does not have a valid wallet address. Skipping blockchain record.');
+                    return res.json({ success: true, message: 'No valid wallet address found. Score saved locally only.', txHash: null });
+                }
+            } else {
+                return res.status(500).json({ success: false, message: 'Blockchain is not configured on server' });
+            }
+            
+            res.json({ success: true, txHash: blockchainTxHash });
+        } catch (err) {
+            console.error('Error triggering blockchain record:', err);
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+    
     // ==================== PROGRESS USER ====================
     router.get('/progress', verifyUser, async (req, res) => {
         try {
             const allBabs = await dbQuery('SELECT id, nama FROM babs ORDER BY urutan');
-            const userNilai = await dbQuery(
-                'SELECT bab_id, persentase, is_lulus FROM nilai_bab WHERE user_id = ?',
-                [req.userId]
-            );
+            const userNilai = await dbQuery(`
+                SELECT n.bab_id, n.persentase, n.is_lulus, bbr.transaction_hash 
+                FROM nilai_bab n
+                LEFT JOIN blockchain_bab_results bbr ON n.user_id = bbr.user_id AND n.bab_id = bbr.bab_id
+                WHERE n.user_id = ?
+            `, [req.userId]);
             
             const nilaiMap = {};
             userNilai.forEach(n => {
-                nilaiMap[n.bab_id] = { persentase: n.persentase, is_lulus: n.is_lulus };
+                // If there are multiple entries (retakes), we keep the one that passed or the last one
+                if (!nilaiMap[n.bab_id] || n.is_lulus) {
+                    nilaiMap[n.bab_id] = { persentase: n.persentase, is_lulus: n.is_lulus, transaction_hash: n.transaction_hash };
+                }
             });
             
             const babsWithNilai = allBabs.map(bab => ({
                 id: bab.id,
                 nama: bab.nama,
                 nilai: nilaiMap[bab.id]?.persentase || 0,
-                is_lulus: nilaiMap[bab.id]?.is_lulus || false
+                is_lulus: nilaiMap[bab.id]?.is_lulus || false,
+                transaction_hash: nilaiMap[bab.id]?.transaction_hash || null
             }));
             
             const totalBab = allBabs.length;
@@ -272,7 +362,7 @@ module.exports = (db, dbQuery) => {
         try {
             const allBabs = await dbQuery('SELECT COUNT(*) as total FROM babs');
             const userNilai = await dbQuery(
-                'SELECT COUNT(*) as lulus FROM nilai_bab WHERE user_id = ? AND is_lulus = 1',
+                'SELECT COUNT(DISTINCT bab_id) as lulus FROM nilai_bab WHERE user_id = ? AND is_lulus = 1',
                 [req.userId]
             );
             
@@ -299,7 +389,7 @@ module.exports = (db, dbQuery) => {
         try {
             const allBabs = await dbQuery('SELECT COUNT(*) as total FROM babs');
             const userNilai = await dbQuery(
-                'SELECT COUNT(*) as lulus FROM nilai_bab WHERE user_id = ? AND is_lulus = 1',
+                'SELECT COUNT(DISTINCT bab_id) as lulus FROM nilai_bab WHERE user_id = ? AND is_lulus = 1',
                 [req.userId]
             );
             
@@ -333,11 +423,11 @@ module.exports = (db, dbQuery) => {
             
             res.json({
                 success: true,
-                session_id: result.insertId,
+                session_id: Number(result.insertId),
                 session_token: sessionToken,
                 soal: randomSoal.map((s, idx) => ({ 
                     nomor: idx + 1, 
-                    id: s.id, 
+                    id: Number(s.id), 
                     pertanyaan: s.pertanyaan,
                     pilihan: {
                         A: s.pilihan_a,
@@ -360,7 +450,7 @@ module.exports = (db, dbQuery) => {
         
         try {
             const sessions = await dbQuery(
-                'SELECT * FROM exam_sessions WHERE id = ? AND session_token = ? AND user_id = ? AND exam_type = "sertifikat" AND completed_at IS NULL',
+                `SELECT * FROM exam_sessions WHERE id = ? AND session_token = ? AND user_id = ? AND exam_type = 'sertifikat' AND completed_at IS NULL`,
                 [session_id, session_token, req.userId]
             );
             
@@ -377,17 +467,20 @@ module.exports = (db, dbQuery) => {
             let totalMaksimal = 0;
             
             for (const jawab of jawaban) {
-                const soal = soals.find(s => s.id === jawab.soal_id);
-                if (!soal) continue;
+                const soal = soals.find(s => Number(s.id) === Number(jawab.soal_id));
+                if (!soal) {
+                    console.warn('Soal sertifikat not found for id:', jawab.soal_id);
+                    continue;
+                }
                 
                 const grade = autoGradePG(jawab.jawaban_user, soal.jawaban_benar, soal.poin);
                 totalNilai += grade.nilai;
-                totalMaksimal += soal.poin;
+                totalMaksimal += (Number(soal.poin) || 10);
                 
                 await dbQuery(
                     `INSERT INTO exam_answers (session_id, soal_id, soal_type, jawaban_user, nilai, feedback) 
                      VALUES (?, ?, 'sertifikat', ?, ?, ?)`,
-                    [session_id, jawab.soal_id, jawab.jawaban_user, grade.nilai, grade.feedback]
+                    [Number(session_id), Number(jawab.soal_id), String(jawab.jawaban_user || ''), Number(grade.nilai), String(grade.feedback)]
                 );
             }
             
@@ -399,7 +492,7 @@ module.exports = (db, dbQuery) => {
             await dbQuery(
                 `INSERT INTO hasil_sertifikat (user_id, session_id, total_nilai, maksimal_nilai, persentase, is_lulus) 
                  VALUES (?, ?, ?, ?, ?, ?)`,
-                [req.userId, session_id, totalNilai, totalMaksimal, persentase, isLulus]
+                [Number(req.userId), Number(session_id), Number(totalNilai), Number(totalMaksimal), Number(persentase), isLulus ? 1 : 0]
             );
             
             res.json({
@@ -454,7 +547,7 @@ module.exports = (db, dbQuery) => {
     router.get('/profile', verifyUser, async (req, res) => {
         try {
             const users = await dbQuery(
-                'SELECT id, username, email, nama_lengkap, jenis_kelamin, no_hp, instansi, kota, foto_profil, nomor_peserta FROM users WHERE id = ?',
+                'SELECT id, username, email, nama_lengkap, jenis_kelamin, no_hp, instansi, kota, foto_profil, nomor_peserta, wallet_address FROM users WHERE id = ?',
                 [req.userId]
             );
             if (users.length === 0) return res.status(404).json({ success: false, message: 'User tidak ditemukan' });
@@ -465,7 +558,7 @@ module.exports = (db, dbQuery) => {
     });
 
     router.put('/profile', verifyUser, upload.single('foto_profil'), async (req, res) => {
-        const { nama_lengkap, jenis_kelamin, no_hp, instansi, kota, username, new_password } = req.body;
+        const { nama_lengkap, jenis_kelamin, no_hp, instansi, kota, username, new_password, wallet_address } = req.body;
         
         try {
             // Cek apakah username baru sudah dipakai user lain
@@ -479,8 +572,8 @@ module.exports = (db, dbQuery) => {
                 }
             }
 
-            let updateQuery = 'UPDATE users SET nama_lengkap = ?, jenis_kelamin = ?, no_hp = ?, instansi = ?, kota = ?, username = ?';
-            let params = [nama_lengkap || '', jenis_kelamin || null, no_hp || null, instansi || null, kota || null, username || null];
+            let updateQuery = 'UPDATE users SET nama_lengkap = ?, jenis_kelamin = ?, no_hp = ?, instansi = ?, kota = ?, username = ?, wallet_address = ?';
+            let params = [nama_lengkap || '', jenis_kelamin || null, no_hp || null, instansi || null, kota || null, username || null, wallet_address || null];
 
             // Ganti password jika diisi
             if (new_password && new_password.trim().length >= 6) {
